@@ -5,12 +5,11 @@
 #include <string.h>
 #include <pthread.h>
 
-#include "pcb.h"
-#include "parameters.h"
+#include "headers/pcb.h"
+#include "headers/parameters.h"
 
 
-
-queue_member* read_workload(const char filepath, enum algorithm algo) {
+queue_member* load_input_file(const char* filepath, enum algorithm algo) {
     
     // open file
     FILE *fp = fopen(filepath, "r");
@@ -20,10 +19,11 @@ queue_member* read_workload(const char filepath, enum algorithm algo) {
     }
 
 
-    int line = 1;
+    int line = 0;
     int format_matches = 0;
 
     while (format_matches != EOF) {
+        line += 1;
 
         // data from line
         int _pid = 0;
@@ -37,9 +37,8 @@ queue_member* read_workload(const char filepath, enum algorithm algo) {
             break;
         }
         if (format_matches != 4 || _pid < 0 || _arrival < 0 || _burst < 0 || _priority < 0) {
-            printf("Improper formatting on line %i", line);
-            fclose(fp);
-            exit(1);
+            printf("Improper formatting on line %i, skipping this line", line);
+            continue;
         }
 
         // we have a valid PCB, create struct instance
@@ -50,31 +49,29 @@ queue_member* read_workload(const char filepath, enum algorithm algo) {
         new_pcb->priority = _priority;
         new_pcb->remaining = _burst;
 
-        // first one in the list?
-        if (queue_start == NULL) {
-            queue_start = new_pcb;
-        } else {
-            insert_pcb_to_queue(new_pcb, algo);
-        }
-
-        line += 1;
+        //now insert it into the queue
+        add_pcb_to_queue(new_pcb, algo);
 
     }
 
+    //
     fclose(fp);
+    return queue_first;
 
 }
 
 
-void insert_pcb_to_queue(PCB* new_pcb, enum algorithm algo) {
+void add_pcb_to_queue(PCB* new_pcb, enum algorithm algo) {
 
     // we need this PCB as a queue
     queue_member* new_queued_PCB = malloc(sizeof(queue_member));
+    memcpy(new_queued_PCB, (void*)&blank_queue_member, sizeof(queue_member));
     new_queued_PCB->pcb = new_pcb;
+    queue_size += 1;
 
     // is it the vert first queue item? easy
-    if (queue_start == NULL) {
-        queue_start = new_queued_PCB;
+    if (queue_first == NULL) {
+        queue_first = new_queued_PCB;
         return;
     }
 
@@ -95,25 +92,46 @@ void insert_pcb_to_queue(PCB* new_pcb, enum algorithm algo) {
     if (algo == SRTF) {
 
         // start at front and compare remaining run times
-        queue_member* current_queued_PCB = queue_start;
+        queue_member* old_queued_PCB = queue_first;
         
-        while (current_queued_PCB->after != NULL) {
+        while (old_queued_PCB->after != NULL) {
             // we found a shorter remaining time, insert it into the linked list
-            if (new_queued_PCB->pcb->remaining < current_queued_PCB->pcb->remaining) {
-                // new PCB takes old PCB's predecessor
-                new_queued_PCB->before = current_queued_PCB->before;
+            if (new_queued_PCB->pcb->remaining < old_queued_PCB->pcb->remaining) {
+
+                // calculate new PCCB wait time
+                float this_wait_time = current_time - new_queued_PCB->last_burst_end;
+                new_queued_PCB->waiting_time += this_wait_time;
+                
+                // calculate the burst effect
+                old_queued_PCB->last_burst_end = current_time;
+                float this_burst = old_queued_PCB->last_burst_end - old_queued_PCB->last_burst_start;
+                old_queued_PCB->running_burst_time += this_burst;
+                old_queued_PCB->pcb->remaining -= this_burst;
+
+                // is it finished? remove it from the queue
+                if (old_queued_PCB->pcb->remaining <= 0) {
+                    if (old_queued_PCB->before != NULL) {
+                        old_queued_PCB->before->after = old_queued_PCB->after;
+                    }
+                    if (old_queued_PCB->after != NULL) {
+                        old_queued_PCB->after->before = old_queued_PCB->before;
+                    }
+                }
+
+                // next let's swap them in the queue
+                // new PCB takes old PCB's predecessor and makes it its follower
+                new_queued_PCB->before = old_queued_PCB->before;
+                new_queued_PCB->after = old_queued_PCB;
                 // Old PCB takes new PCB as predecesssor
-                current_queued_PCB->before = new_queued_PCB;
-                // new PCB takes old PCB as followor
-                new_queued_PCB->after = current_queued_PCB;
+                old_queued_PCB->before = new_queued_PCB;
                 // old PCB keeps the same follower, and we exit function
-                return;
+
             }
         }
     
         // if this line is executing that means we made it all the way the to the end of the queue without finding a shorter job time, insert it at the end
-        current_queued_PCB->after = new_queued_PCB;
-        new_queued_PCB->before = current_queued_PCB;
+        old_queued_PCB->after = new_queued_PCB;
+        new_queued_PCB->before = old_queued_PCB;
 
         // done!
         return;
@@ -124,13 +142,8 @@ void insert_pcb_to_queue(PCB* new_pcb, enum algorithm algo) {
     // now for RR
     if (algo == RR) {
 
-        // allocate new PCB
-        queue_member* new_queued_PCB = malloc(sizeof(queue_member));
-        new_queued_PCB->pcb = new_pcb;
-        new_queued_PCB->before = NULL;
-        new_queued_PCB->after = NULL;
         // start at front and compare remaining run times
-        queue_member* current_queued_PCB = queue_start;
+        queue_member* current_queued_PCB = queue_first;
         
         while (current_queued_PCB->after != NULL) {
             
@@ -157,5 +170,14 @@ void insert_pcb_to_queue(PCB* new_pcb, enum algorithm algo) {
 
     }
     
+}
+
+
+
+void insert_pcb_into_queue(queue_member* to_be_inserted, queue_member* before, queue_member* after){
+
+                // calculate new PCCB wait time
+                float this_wait_time = current_time - to_be_inserted->last_burst_end;
+                to_be_inserted->waiting_time += this_wait_time;
 
 }

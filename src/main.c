@@ -1,5 +1,5 @@
-#include "parameters.h"
-#include "pcb.h"
+#include "headers/parameters.h"
+#include "headers/pcb.h"
 
 
 
@@ -30,21 +30,56 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
-    // read the file
-    queue_start = read_workload(input_file, algo);
 
-    /**************************************************************************\
-     *                                                                          * 
-     *                                                                          *
-     *                           MAIN  LOOP                                     *
-     *                                                                          *  
-     *                                                                          * 
-    \***************************************************************************/
+    /***************************************************************************
+    ****************************************************************************
+    ****************************************************************************
+    ****  MAIN LOOP *** MAIN LOOP *** MAIN LOOP***  MAIN LOOP *** MAIN LOOP ****
+    ****  MAIN LOOP *** MAIN LOOP *** MAIN LOOP***  MAIN LOOP *** MAIN LOOP ****
+    ****  MAIN LOOP *** MAIN LOOP *** MAIN LOOP***  MAIN LOOP *** MAIN LOOP ****
+    ****  MAIN LOOP *** MAIN LOOP *** MAIN LOOP***  MAIN LOOP *** MAIN LOOP ****
+    ****  MAIN LOOP *** MAIN LOOP *** MAIN LOOP***  MAIN LOOP *** MAIN LOOP ****
+    ****************************************************************************
+    ****************************************************************************
+    ****************************************************************************/
 
+    // read the first in queue
+    current_time = 0;
+    load_input_file(input_file, algo);
+    queue_member* this_queue_item = queue_first;
+
+    // some "macros" to make life easier
+#define q this_queue_item
+#define pcb this_queue_item->pcb
+
+    /////////////////////////////
+    //////////// LOOP ///////////
+    /////////////////////////////
     while (queue_size) {
 
-    
-         return 0;
+        // add context time switch
+        current_time += .5;
+
+        // calculate some queue stats
+        if (! q->response_time) {
+            q->response_time = current_time;
+            // set waiting time and response time at the same time
+            q->waiting_time += current_time - pcb->arrival;
+        }
+
+
+        // depending on our algorithm, let's handle this
+        switch (algo) {
+        case FCFS:
+            current_time += pcb->burst;
+            q->completion_time = current_time;
+            q->last_burst_end = current_time;
+            q->n_context = 1;
+            break;
+        
+        default:
+            break;
+        }
 
     }
 
