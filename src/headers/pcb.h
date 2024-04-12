@@ -1,13 +1,12 @@
+// pcb.h
+// Project: CSCI-3453 Lab #2 
+// Description: University of Colorado Operating System Concepts (CSCI-3453) Lab #2: Process scheduler Simulation (3 algorithms demo) 
+// Author: Mark Evers <mark.evers@ucdenver.edu>, <mevers303@gmail.com>
+// Repository: https://github.com/mevers303/csci3453-lab2
+
+
 #ifndef PCB_H
 #define PCB_H
-
-// system includes
-#include <stdio.h>
-#include <stdlib.h>
-
-// project includes
-#include "parameters.h"
-
 
 
 
@@ -95,13 +94,14 @@ int completed_queue_size = 0;
  *                                            *    
 ***********************************************/
 
+// loads the input queue
 queue_member* load_input_file(const char* filepath);
+// creates a pcb queue item and adds it to the queue
 void add_pcb_to_input_queue(PCB* new_pcb);
+// adds a pcb queue item to the active queue
+void insert_pcb_into_queue(queue_member* to_be_inserted, queue_member* insert_after);
+// simulates a new job arriving
 void receive_next_job();
-void insert_pcb_into_queue(queue_member* to_be_inserted, queue_member* insert_before);
-void calc_q_stats(queue_member* to_be_inserted, queue_member* insert_before);
-void do_tick();
-void context_switch();
 
 
 #endif

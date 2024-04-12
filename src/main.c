@@ -1,3 +1,13 @@
+// main.c
+// Project: CSCI-3453 Lab #2 
+// Description: University of Colorado Operating System Concepts (CSCI-3453) Lab #2: Process scheduler Simulation (3 algorithms demo) 
+// Author: Mark Evers <mark.evers@ucdenver.edu>, <mevers303@gmail.com>
+// Repository: https://github.com/mevers303/csci3453-lab2
+
+// standard includes
+#include <stdio.h>
+
+// project includes
 #include "headers/parameters.h"
 #include "headers/pcb.h"
 
@@ -67,14 +77,14 @@ int main(int argc, char* argv[]) {
             }
             // was something added to the front of the queue? do a context switch
             if (old_queue_first != queue_first) {
-                context_switch();
+                switch_process();
             }
         }
         
 
         // second, check if context switch is needed for round robin
         if (algo == RR && current_time - last_quantum_start >= quantum_size) {
-            context_switch();
+            switch_process();
         }
         
 
@@ -82,10 +92,10 @@ int main(int argc, char* argv[]) {
         do_tick();
 
         
-        // fourth, check if process just completed running, since context_switch() needs to be called before the time is incremented
+        // fourth, check if process just completed running, since switch_process() needs to be called before the time is incremented
         if (queue_first->remaining_time <= 0) {
             // context switch checks for finished process and handles it
-            context_switch();
+            switch_process();
         }
 
 

@@ -1,14 +1,28 @@
-// main.c
-#include <stdio.h>
-#include <unistd.h>
-#include <stdlib.h>
-#include <string.h>
-#include <pthread.h>
+// pcb.c
+// Project: CSCI-3453 Lab #2 
+// Description: University of Colorado Operating System Concepts (CSCI-3453) Lab #2: Process scheduler Simulation (3 algorithms demo) 
+// Author: Mark Evers <mark.evers@ucdenver.edu>, <mevers303@gmail.com>
+// Repository: https://github.com/mevers303/csci3453-lab2
 
+// standard includes
+#include <stdio.h>
+
+// project includes
 #include "headers/pcb.h"
 #include "headers/parameters.h"
 
 
+
+
+
+/**********************************************
+ *                                            *
+ *                 FUNCTIONS                  *
+ *                                            *
+***********************************************/
+
+
+// loads the input queue
 queue_member* load_input_file(const char* filepath) {
     
     // open file
@@ -61,6 +75,7 @@ queue_member* load_input_file(const char* filepath) {
 }
 
 
+// creates a pcb queue item and adds it to the queue
 void add_pcb_to_input_queue(PCB* new_pcb) {
 
     // we need this PCB as a queue object
@@ -92,6 +107,46 @@ void add_pcb_to_input_queue(PCB* new_pcb) {
 
 }
 
+
+
+
+// inserts a PCB queue item after a specified item in the active queue
+void insert_pcb_into_queue(queue_member* to_be_inserted, queue_member* insert_after) {
+
+    // if its not the first in the queue
+    if (insert_after != NULL) {
+
+        // next let's swap them into the queue
+        to_be_inserted->before = insert_after;
+        to_be_inserted->after = insert_after->after;
+        // Old PCB takes new PCB as predecesssor
+        insert_after->after = to_be_inserted;
+        // increase counter
+        queue_size++;
+
+    // we need to add to front of queue
+    } else {
+
+        // the queue is empty
+        if (queue_first == NULL) {
+            queue_first = queue_last = to_be_inserted;
+            queue_size = 1;
+        // the queue is not empty, we need to swap it in
+        } else {
+            queue_first->before = to_be_inserted;
+            to_be_inserted->after = queue_first;
+            queue_first = to_be_inserted;
+            queue_size++;
+        }
+
+        // also this entails a context switch if it is already running
+        if (current_time > 0) {
+            switch_process();
+        }
+
+    }
+
+}
 
 
 
@@ -181,156 +236,4 @@ void receive_next_job() {
     printf("Unknown error: unknown state or no algorithm in receive_next_job()");
     exit(1);
     
-}
-
-
-
-
-// inserts a PCB queue item after a specified item in the active queue
-void insert_pcb_into_queue(queue_member* to_be_inserted, queue_member* insert_after) {
-
-    // if its not the first in the queue
-    if (insert_after != NULL) {
-
-        // next let's swap them into the queue
-        to_be_inserted->before = insert_after;
-        to_be_inserted->after = insert_after->after;
-        // Old PCB takes new PCB as predecesssor
-        insert_after->after = to_be_inserted;
-        // increase counter
-        queue_size++;
-
-    // we need to add to front of queue
-    } else {
-
-        // the queue is empty
-        if (queue_first == NULL) {
-            queue_first = queue_last = to_be_inserted;
-            queue_size = 1;
-        // the queue is not empty, we need to swap it in
-        } else {
-            queue_first->before = to_be_inserted;
-            to_be_inserted->after = queue_first;
-            queue_first = to_be_inserted;
-            queue_size++;
-        }
-
-        // also this entails a context switch if it is already running
-        if (current_time > 0) {
-            context_switch();
-        }
-
-    }
-
-}
-
-
-
-// runs BEFORE current_time is incremented at end of each tick
-void context_switch() {
-
-    //////////////////////
-    // end running item //
-    //////////////////////
-
-    // update metadata
-    queue_first->last_burst_end = current_time + 1;
-    queue_first->running_time += queue_first->last_burst_end - queue_first->last_burst_start;
-    // save the next item in queue, , we will be modifying queue_first before we need it later
-    queue_member* next_queue_item = queue_first->after;
-    // boolean if the current item has finished running, we will be modifying queue_first before we need it later
-    int running_item_finished = queue_first->remaining_time <= 0;
-
-    // if the running item is now finished, finalize the stats and remove from queue
-    if (running_item_finished) {
-
-        // save some stats
-        queue_first->completion_time = current_time + 1;
-        queue_first->turn_around_time = queue_first->completion_time - queue_first->pcb->arrival;
-        queue_first->response_time = queue_first->start_time - queue_first->pcb->arrival;
-
-        // add into completed queue
-        queue_first->before = completed_queue_last;
-        queue_first->after = NULL;
-        if (completed_queue_first == NULL) {
-            completed_queue_first = completed_queue_last = queue_first;
-            completed_queue_size = 1;
-        } else {
-            completed_queue_last->after = queue_first;
-            completed_queue_last = queue_first;
-            completed_queue_size++;
-        }
-
-        // pop from active queue
-        queue_first = next_queue_item;
-        queue_size--;
-
-    }
-
-
-    ///////////////////
-    // overhead time //
-    ///////////////////
-
-    // is there still more than one item in the queue? move to the back of queue and switch to the next
-    if (!running_item_finished && queue_size > 1) {
-        queue_first = next_queue_item;
-    // one item left or zero items in queue? no context switch (this case happens in round robin)
-    } else if (queue_size == 0 || queue_size == 1) {
-        // round robin quantum management
-        if (algo == RR) {
-            last_quantum_start = current_time;
-        }
-        return;
-    // less than zero items in queue?  problem
-    } else {
-        printf("Unknown error: unknown state (negative queue size)");
-        exit(1);
-    }
-
-    // add overhead time if it's not the very first tick
-    if (current_time > 0) {
-        current_time += CONTEXT_SWITCH_COST;
-    }
-
-    // round robin quantum management
-    if (algo == RR) {
-        last_quantum_start = current_time;
-    }
-
-
-    /////////////////////
-    // start next item //
-    /////////////////////
-    // if it's the first time running, initialize some metadata
-    if (queue_first->start_time == -1) {
-        queue_first->start_time = current_time;
-        queue_first->response_time = current_time - queue_first->pcb->arrival;
-        queue_first->waiting_time = queue_first->response_time;  // same value for now
-        queue_first->n_context = 1;
-        queue_first->last_burst_start = current_time;
-        queue_first->running_time = 0;
-        queue_first->remaining_time = queue_first->pcb->remaining;
-    // it's a process that has run before
-    } else {
-        queue_first->waiting_time += current_time - queue_first->last_burst_end;
-        queue_first->n_context++;
-    }
-        
-
-}
-
-
-
-void do_tick() {
-
-    // sanity check, empty queue
-    if (queue_first == NULL) {
-        return;
-    }
-
-    // update current item
-    queue_first->running_time++;
-    queue_first->remaining_time--;
-
 }
