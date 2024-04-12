@@ -221,40 +221,21 @@ void insert_pcb_into_queue(queue_member* to_be_inserted, queue_member* insert_af
 
 
 
-
-
-void get_aggregate_stats(queue_member* to_be_inserted, queue_member* insert_before) {
-
-    // calculate new PCB wait time
-    float this_wait_time = current_time - to_be_inserted->last_burst_end;
-    to_be_inserted->waiting_time += this_wait_time;
-    
-    // if it's not the very first in the queue
-    if (insert_before != NULL) {
-        // find the old PCB burst time
-        insert_before->last_burst_end = current_time;
-        float this_burst = insert_before->last_burst_end - insert_before->last_burst_start;
-        insert_before->running_burst_time += this_burst;
-        insert_before->pcb->remaining -= this_burst;
-    }
-
-}
-
-
 void context_switch() {
 
     //////////////////////
     // end running item //
     //////////////////////
-    queue_first->last_burst_end = current_time;
+    queue_first->last_burst_end = current_time + 1;
     queue_first->running_burst_time += queue_first->last_burst_end - queue_first->last_burst_start;
     queue_member* next_queue_item = queue_first->after;
     int running_item_finished = queue_first->remaining_burst_time == 0;
 
     // if the running item is now finished
     if (running_item_finished) {
+
         // save some stats
-        queue_first->completion_time = current_time;
+        queue_first->completion_time = current_time + 1;
         queue_first->turn_around_time = queue_first->completion_time - queue_first->pcb->arrival;
         queue_first->response_time = queue_first->start_time - queue_first->pcb->arrival;
 
@@ -293,22 +274,28 @@ void context_switch() {
         exit(1);
     }
 
-    // add overhead time
-    current_time += CONTEXT_SWITCH_COST;
+    // add overhead time if it's not the very first tick
+    if (current_time > 0) {
+        current_time += CONTEXT_SWITCH_COST;
+    }
 
 
-    ////////////////////
-    // start new item //
-    ////////////////////
-    // if it's the first time running, record some metadata
+    /////////////////////
+    // start next item //
+    /////////////////////
+    // if it's the first time running, initialize some metadata
     if (queue_first->start_time == -1) {
         queue_first->start_time = current_time;
         queue_first->response_time = current_time - queue_first->pcb->arrival;
         queue_first->waiting_time = queue_first->response_time;  // same value for now
-        queue_first->n_context = 0;
+        queue_first->n_context = 1;
         queue_first->last_burst_start = current_time;
         queue_first->running_burst_time = 0;
         queue_first->remaining_burst_time = queue_first->pcb->remaining;
+    // it's a process that has run before
+    } else {
+        queue_first->waiting_time += current_time - queue_first->last_burst_end;
+        queue_first->n_context++;
     }
         
         
@@ -317,6 +304,10 @@ void context_switch() {
 
 
 void do_tick() {
+
+    // update current item
+    queue_first->running_burst_time++;
+    queue_first->remaining_burst_time--;
 
     // is it finiished?
     if (queue_first->remaining_burst_time <= 0) {

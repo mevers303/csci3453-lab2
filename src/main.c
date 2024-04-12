@@ -44,11 +44,13 @@ int main(int argc, char* argv[]) {
     // loop while we still have queue items
     while (queue_first != NULL && input_queue_first != NULL) {
 
-        if (input_queue_first->pcb->arrival <= current_time) {
+        // check if a new process has arrived
+        if (input_queue_first != NULL && input_queue_first->pcb->arrival <= current_time) {
             receive_next_job();
         }
 
         do_tick();
+        current_time += 1;
     }
 
     return 0;
