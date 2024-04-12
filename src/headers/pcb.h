@@ -45,8 +45,8 @@ struct _queue_member {
     float n_context;
     float last_burst_start;
     float last_burst_end;
-    float running_burst_time;
-    float remaining_burst_time;
+    float running_time;
+    float remaining_time;
 };
 typedef struct _queue_member queue_member;
 
@@ -63,8 +63,8 @@ queue_member blank_queue_member = {
     .n_context = -1,
     .last_burst_start = -1,
     .last_burst_end = -1,
-    .running_burst_time = -1,
-    .remaining_burst_time = -1
+    .running_time = -1,
+    .remaining_time = -1
 };
 
 

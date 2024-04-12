@@ -219,22 +219,27 @@ void insert_pcb_into_queue(queue_member* to_be_inserted, queue_member* insert_af
         if (current_time > 0) {
             context_switch();
         }
-        
+
     }
 
 }
 
 
 
+// runs BEFORE current_time is incremented at end of each tick
 void context_switch() {
 
     //////////////////////
     // end running item //
     //////////////////////
+
+    // update metadata
     queue_first->last_burst_end = current_time + 1;
-    queue_first->running_burst_time += queue_first->last_burst_end - queue_first->last_burst_start;
+    queue_first->running_time += queue_first->last_burst_end - queue_first->last_burst_start;
+    // save the next item in queue, , we will be modifying queue_first before we need it later
     queue_member* next_queue_item = queue_first->after;
-    int running_item_finished = queue_first->remaining_burst_time == 0;
+    // boolean if the current item has finished running, we will be modifying queue_first before we need it later
+    int running_item_finished = queue_first->remaining_time <= 0;
 
     // if the running item is now finished, finalize the stats and remove from queue
     if (running_item_finished) {
@@ -270,8 +275,12 @@ void context_switch() {
     // is there still more than one item in the queue? move to the back of queue and switch to the next
     if (!running_item_finished && queue_size > 1) {
         queue_first = next_queue_item;
-    // one item left or zero items in queue? no context switch
+    // one item left or zero items in queue? no context switch (this case happens in round robin)
     } else if (queue_size == 0 || queue_size == 1) {
+        // round robin quantum management
+        if (algo == RR) {
+            last_quantum_start = current_time;
+        }
         return;
     // less than zero items in queue?  problem
     } else {
@@ -282,6 +291,11 @@ void context_switch() {
     // add overhead time if it's not the very first tick
     if (current_time > 0) {
         current_time += CONTEXT_SWITCH_COST;
+    }
+
+    // round robin quantum management
+    if (algo == RR) {
+        last_quantum_start = current_time;
     }
 
 
@@ -295,8 +309,8 @@ void context_switch() {
         queue_first->waiting_time = queue_first->response_time;  // same value for now
         queue_first->n_context = 1;
         queue_first->last_burst_start = current_time;
-        queue_first->running_burst_time = 0;
-        queue_first->remaining_burst_time = queue_first->pcb->remaining;
+        queue_first->running_time = 0;
+        queue_first->remaining_time = queue_first->pcb->remaining;
     // it's a process that has run before
     } else {
         queue_first->waiting_time += current_time - queue_first->last_burst_end;
@@ -316,12 +330,7 @@ void do_tick() {
     }
 
     // update current item
-    queue_first->running_burst_time++;
-    queue_first->remaining_burst_time--;
-
-    // is it finiished?
-    if (queue_first->remaining_burst_time <= 0) {
-        context_switch();
-    }
+    queue_first->running_time++;
+    queue_first->remaining_time--;
 
 }

@@ -6,6 +6,11 @@
 
 
 int main(int argc, char* argv[]) {
+
+
+    /////////////////////////////
+    ///////   ARGUMENTS /////////
+    /////////////////////////////
  
     // read the arguments
     if (argc != 3 && argc != 4) {
@@ -38,14 +43,20 @@ int main(int argc, char* argv[]) {
     ///////   MAIN LOOP /////////
     /////////////////////////////
 
-    // read the first in queue
-    current_time = 0;
+    // load the input queue
     load_input_file(input_file);
+    // initialize vars
+    current_time = 0;
+    if (algo = RR) {
+        last_quantum_start = 0;
+    }
     queue_member* this_queue_item = queue_first;
 
 
     // loop while we still have queue items
-    while (!(queue_first == NULL && input_queue_first == NULL)) {
+    while (! (queue_first == NULL && input_queue_first == NULL)) {
+
+        // first, manage the queues
 
         // check if a new process has arrived
         if (input_queue_first != NULL && input_queue_first->pcb->arrival <= current_time) {
@@ -59,8 +70,26 @@ int main(int argc, char* argv[]) {
                 context_switch();
             }
         }
+        
 
+        // second, check if context switch is needed for round robin
+        if (algo == RR && current_time - last_quantum_start >= quantum_size) {
+            context_switch();
+        }
+        
+
+        // third, perform a burst cycle
         do_tick();
+
+        
+        // fourth, check if process just completed running, since context_switch() needs to be called before the time is incremented
+        if (queue_first->remaining_time <= 0) {
+            // context switch checks for finished process and handles it
+            context_switch();
+        }
+
+
+        // finally, increment the time for the next cycle
         current_time += 1;
     }
 
