@@ -93,7 +93,9 @@ void add_pcb_to_input_queue(PCB* new_pcb) {
 }
 
 
-void transfer_from_input_to_active() {
+
+
+void receive_next_job() {
 
     // pull queue item off input queue
     queue_member* new_queued_pcb = input_queue_first;
@@ -123,19 +125,21 @@ void transfer_from_input_to_active() {
     // now for SRTF
     if (algo == SRTF) {
 
-        // start at front and compare remaining run times
+        // start at front
         queue_member* current_queue_item = queue_first;
         
-        // if it's not the very first one
+        // loop to compare run times and insert
         while (current_queue_item != NULL) {
+
             // we found a shorter remaining time, insert it into the linked list before current item
             if (new_queued_pcb->pcb->remaining < current_queue_item->pcb->remaining) {
                 insert_pcb_into_queue(new_queued_pcb, current_queue_item->before);
                 return;
-            } else {
-                // loop to next one
-                current_queue_item = current_queue_item->after;
             }
+
+            // loop to next one
+            current_queue_item = current_queue_item->after;
+
         }
     
         // if this line is executing that means we made it all the way the to the end of the queue without finding a shorter job time, insert it at the end
@@ -149,27 +153,31 @@ void transfer_from_input_to_active() {
     // now for RR
     if (algo == RR) {
 
-        // start at front and compare remaining run times
-        queue_member* queue_i = queue_first;
+        // start at front
+        queue_member* current_queue_item = queue_first;
         
-        while (queue_i->after != NULL) {
+        // loop to compare priorities
+        while (current_queue_item != NULL) {
             
-            // we found a shorter remaining time, insert it into the linked list
-            if (new_queued_pcb->pcb->priority < queue_i->pcb->priority) {
-                insert_pcb_into_queue(new_queued_pcb, queue_i);
+            // we found a lower priority, insert it before the current list item
+            if (new_queued_pcb->pcb->priority < current_queue_item->pcb->priority) {
+                insert_pcb_into_queue(new_queued_pcb, current_queue_item->before);
                 return;
             }
+
         }
     
-        // if this line is executing that means we made it all the way the to the end of the queue without finding a shorter job time, insert it at the end
-        queue_i->after = new_queued_pcb;
-        new_queued_pcb->before = queue_i;
-        queue_last = new_queued_pcb;
-
-        // done!
+        // if this line is executing that means we made it all the way the to the end of the queue without finding a smaller priority, insert it at the end
+        insert_pcb_into_queue(new_queued_pcb, queue_last);
         return;
 
     }
+
+
+
+    // this should never execute
+    printf("Unknown error: unknown state or no algorithm in receive_next_job()");
+    exit(1);
     
 }
 

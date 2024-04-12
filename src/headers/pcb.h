@@ -98,7 +98,7 @@ int completed_queue_size = 0;
 // read the file specified in the arguments
 queue_member* load_input_file(const char* filepath);
 void add_pcb_to_input_queue(PCB* new_pcb);
-void transfer_from_input_to_active();
+void receive_next_job();
 void insert_pcb_into_queue(queue_member* to_be_inserted, queue_member* insert_before);
 void calc_q_stats(queue_member* to_be_inserted, queue_member* insert_before);
 void do_tick();
