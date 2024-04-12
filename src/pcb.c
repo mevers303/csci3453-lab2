@@ -105,7 +105,15 @@ void transfer_from_input_to_active() {
     input_queue_size--;
 
 
-    // if FCFS just instert it at the end
+    // if active queue is empty, just set 
+    if (queue_first == NULL) {
+        queue_first = queue_last = new_queued_pcb;
+        queue_size = 1;
+        return;
+    }
+
+
+    // if FCFS just insert it at the end
     if (algo == FCFS) {
         insert_pcb_into_queue(new_queued_pcb, queue_last);
         return;
@@ -121,8 +129,8 @@ void transfer_from_input_to_active() {
         // if it's not the very first one
         while (queue_i != NULL) {
             // we found a shorter remaining time, insert it into the linked list
-            if (new_queued_pcb->pcb->remaining <= queue_i->pcb->remaining) {
-                insert_pcb_into_queue(new_queued_pcb, queue_i);
+            if (new_queued_pcb->pcb->remaining < queue_i->pcb->remaining) {
+                insert_pcb_into_queue(new_queued_pcb, queue_i->before);
                 return;
             } else {
                 // loop to next one
@@ -174,6 +182,7 @@ void insert_pcb_into_queue(queue_member* to_be_inserted, queue_member* insert_af
 
     // if its not the first in the queue
     if (insert_after != NULL) {
+
         // next let's swap them into the queue
         to_be_inserted->before = insert_after;
         to_be_inserted->after = insert_after->after;
@@ -181,13 +190,27 @@ void insert_pcb_into_queue(queue_member* to_be_inserted, queue_member* insert_af
         insert_after->after = to_be_inserted;
         // increase counter
         queue_size++;
+
+    // we need to add to front of queue
     } else {
-        //it's the first the  queue
-        queue_first = to_be_inserted;
-        queue_size = 1;
+
+        // the queue is empty
+        if (queue_first == NULL) {
+            queue_first = queue_last = to_be_inserted;
+            queue_size = 1;
+        // the queue is not empty, we need to swap it in
+        } else {
+            queue_first->before = to_be_inserted;
+            to_be_inserted->after = queue_first;
+            queue_first = to_be_inserted;
+        }
+
     }
 
 }
+
+
+
 
 void get_aggregate_stats(queue_member* to_be_inserted, queue_member* insert_before) {
 
