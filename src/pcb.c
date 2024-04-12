@@ -9,7 +9,7 @@
 #include "headers/parameters.h"
 
 
-queue_member* load_input_file(const char* filepath, enum algorithm algo) {
+queue_member* load_input_file(const char* filepath) {
     
     // open file
     FILE *fp = fopen(filepath, "r");
@@ -50,7 +50,7 @@ queue_member* load_input_file(const char* filepath, enum algorithm algo) {
         new_pcb->remaining = _burst;
 
         //now insert it into the queue
-        add_pcb_to_queue(new_pcb, algo);
+        add_pcb_to_input_queue(new_pcb, algo);
 
     }
 
@@ -61,29 +61,53 @@ queue_member* load_input_file(const char* filepath, enum algorithm algo) {
 }
 
 
-void add_pcb_to_queue(PCB* new_pcb, enum algorithm algo) {
+void add_pcb_to_input_queue(PCB* new_pcb) {
 
-    // we need this PCB as a queue
-    queue_member* new_queued_PCB = malloc(sizeof(queue_member));
-    memcpy(new_queued_PCB, (void*)&blank_queue_member, sizeof(queue_member));
-    new_queued_PCB->pcb = new_pcb;
-    queue_size += 1;
+    // we need this PCB as a queue object
+    queue_member* new_queued_pcb = malloc(sizeof(queue_member));
+    memcpy(new_queued_pcb, (void*)&blank_queue_member, sizeof(queue_member));
+    new_queued_pcb->pcb = new_pcb;
 
-    // is it the vert first queue item? easy
-    if (queue_first == NULL) {
-        queue_first = new_queued_PCB;
+    // is it the very first queue item
+    if (input_queue_first == NULL) {
+        input_queue_first = input_queue_last = new_queued_pcb;
+        input_queue_size = 1;
         return;
+    // proper arrival time
+    } else if (new_queued_pcb->pcb->arrival >= input_queue_last->pcb->arrival) {
+        new_queued_pcb->before = input_queue_last;
+        input_queue_last->after = new_queued_pcb;
+        input_queue_last = new_queued_pcb;
+        input_queue_size++;
+        return;
+    // TODO: bad arrival time, search backwards and insert
+    } else if (new_queued_pcb->pcb->arrival < input_queue_last->pcb->arrival) {
+        printf("Unhandled input error: arrival time is non-sequential.");
+        exit(1);
+    // this should never happen
+    } else {
+        printf("Unhandled input error: unknown input condition: add_pcb_to_input_queue()");
+        exit(1);
     }
 
-    // easy one first, if FCFS just instert it at the end
+}
+
+
+void transfer_from_input_to_active() {
+
+    // pull queue item off input queue
+    queue_member* new_queued_pcb = input_queue_first;
+    if (new_queued_pcb == NULL) {
+        return;
+    }
+    input_queue_first = input_queue_first->after;
+    input_queue_first->before = NULL;
+    input_queue_size--;
+
+
+    // if FCFS just instert it at the end
     if (algo == FCFS) {
-        // new queue item get new predecessor
-        new_queued_PCB->before = queue_last;
-        // last queue item gets new follower
-        queue_last->after = new_queued_PCB;
-        // new_queued_PCB->after remains NULL, signifying the end
-        // save the last queue item for easy access next time
-        queue_last = new_queued_PCB;
+        insert_pcb_into_queue(new_queued_pcb, queue_last);
         return;
     }
 
@@ -92,46 +116,23 @@ void add_pcb_to_queue(PCB* new_pcb, enum algorithm algo) {
     if (algo == SRTF) {
 
         // start at front and compare remaining run times
-        queue_member* old_queued_PCB = queue_first;
+        queue_member* queue_i = queue_first;
         
-        while (old_queued_PCB->after != NULL) {
+        // if it's not the very first one
+        while (queue_i != NULL) {
             // we found a shorter remaining time, insert it into the linked list
-            if (new_queued_PCB->pcb->remaining < old_queued_PCB->pcb->remaining) {
-
-                // calculate new PCCB wait time
-                float this_wait_time = current_time - new_queued_PCB->last_burst_end;
-                new_queued_PCB->waiting_time += this_wait_time;
-                
-                // calculate the burst effect
-                old_queued_PCB->last_burst_end = current_time;
-                float this_burst = old_queued_PCB->last_burst_end - old_queued_PCB->last_burst_start;
-                old_queued_PCB->running_burst_time += this_burst;
-                old_queued_PCB->pcb->remaining -= this_burst;
-
-                // is it finished? remove it from the queue
-                if (old_queued_PCB->pcb->remaining <= 0) {
-                    if (old_queued_PCB->before != NULL) {
-                        old_queued_PCB->before->after = old_queued_PCB->after;
-                    }
-                    if (old_queued_PCB->after != NULL) {
-                        old_queued_PCB->after->before = old_queued_PCB->before;
-                    }
-                }
-
-                // next let's swap them in the queue
-                // new PCB takes old PCB's predecessor and makes it its follower
-                new_queued_PCB->before = old_queued_PCB->before;
-                new_queued_PCB->after = old_queued_PCB;
-                // Old PCB takes new PCB as predecesssor
-                old_queued_PCB->before = new_queued_PCB;
-                // old PCB keeps the same follower, and we exit function
-
+            if (new_queued_pcb->pcb->remaining <= queue_i->pcb->remaining) {
+                insert_pcb_into_queue(new_queued_pcb, queue_i);
+                return;
+            } else {
+                // loop to next one
+                queue_i = queue_i->after;
             }
         }
     
         // if this line is executing that means we made it all the way the to the end of the queue without finding a shorter job time, insert it at the end
-        old_queued_PCB->after = new_queued_PCB;
-        new_queued_PCB->before = old_queued_PCB;
+        queue_i->after = new_queued_pcb;
+        new_queued_pcb->before = queue_i;
 
         // done!
         return;
@@ -139,31 +140,26 @@ void add_pcb_to_queue(PCB* new_pcb, enum algorithm algo) {
     }
 
 
+
     // now for RR
     if (algo == RR) {
 
         // start at front and compare remaining run times
-        queue_member* current_queued_PCB = queue_first;
+        queue_member* queue_i = queue_first;
         
-        while (current_queued_PCB->after != NULL) {
+        while (queue_i->after != NULL) {
             
             // we found a shorter remaining time, insert it into the linked list
-            if (new_queued_PCB->pcb->priority < current_queued_PCB->pcb->priority) {
-                // new PCB takes old PCB's predecessor
-                new_queued_PCB->before = current_queued_PCB->before;
-                // Old PCB takes new PCB as predecesssor
-                current_queued_PCB->before = new_queued_PCB;
-                // new PCB takes old PCB as followor
-                new_queued_PCB->after = current_queued_PCB;
-                // old PCB keeps the same follower, and we exit function
+            if (new_queued_pcb->pcb->priority < queue_i->pcb->priority) {
+                insert_pcb_into_queue(new_queued_pcb, queue_i);
                 return;
             }
         }
     
         // if this line is executing that means we made it all the way the to the end of the queue without finding a shorter job time, insert it at the end
-        current_queued_PCB->after = new_queued_PCB;
-        new_queued_PCB->before = current_queued_PCB;
-        queue_last = new_pcb;
+        queue_i->after = new_queued_pcb;
+        new_queued_pcb->before = queue_i;
+        queue_last = new_queued_pcb;
 
         // done!
         return;
@@ -174,10 +170,79 @@ void add_pcb_to_queue(PCB* new_pcb, enum algorithm algo) {
 
 
 
-void insert_pcb_into_queue(queue_member* to_be_inserted, queue_member* before, queue_member* after){
+void insert_pcb_into_queue(queue_member* to_be_inserted, queue_member* insert_after) {
 
-                // calculate new PCCB wait time
-                float this_wait_time = current_time - to_be_inserted->last_burst_end;
-                to_be_inserted->waiting_time += this_wait_time;
+    // if its not the first in the queue
+    if (insert_after != NULL) {
+        // next let's swap them into the queue
+        to_be_inserted->before = insert_after;
+        to_be_inserted->after = insert_after->after;
+        // Old PCB takes new PCB as predecesssor
+        insert_after->after = to_be_inserted;
+        // increase counter
+        queue_size++;
+    } else {
+        //it's the first the  queue
+        queue_first = to_be_inserted;
+        queue_size = 1;
+    }
+
+}
+
+void get_aggregate_stats(queue_member* to_be_inserted, queue_member* insert_before) {
+
+    // calculate new PCB wait time
+    float this_wait_time = current_time - to_be_inserted->last_burst_end;
+    to_be_inserted->waiting_time += this_wait_time;
+    
+    // if it's not the very first in the queue
+    if (insert_before != NULL) {
+        // find the old PCB burst time
+        insert_before->last_burst_end = current_time;
+        float this_burst = insert_before->last_burst_end - insert_before->last_burst_start;
+        insert_before->running_burst_time += this_burst;
+        insert_before->pcb->remaining -= this_burst;
+    }
+
+}
+
+
+void do_tick() {
+    queue_member* one = queue_first;
+    queue_member* two = one->after;
+
+    // one stats
+    one->last_burst_end = current_time;
+    one->turn_around_time = one->completion_time - one->pcb->arrival;
+    one->waiting_time = one->turn_around_time - one->running_burst_time;
+    one->response_time = one->start_time - one->pcb->arrival;
+    one->running_burst_time += one->last_burst_end - one->last_burst_start;
+    one->remaining_burst_time = one->running_burst_time - one->pcb->burst;
+
+    // is it finiished?
+    if (one->remaining_burst_time <= 0) {
+        // send off the first queue item to completed_queue
+        one->completion_time = current_time;
+        // add to the completed queue
+        completed_queue_last->after = one;
+        one->before = completed_queue_last;
+        completed_queue_last = one;
+        completed_queue_last->after = NULL;
+
+        // set up the second queue item
+        two->before = NULL;
+        queue_first = two;
+        // add context time switch
+        current_time += .5;
+        queue_size -= 1;
+    }
+
+    //two stats
+    two->n_context += 1;
+    if (!two->start_time) {
+        two->start_time = current_time;
+    }
+    two->waiting_time += current_time - (two->last_burst_end || two->pcb->arrival);
+    two->last_burst_start = current_time;
 
 }

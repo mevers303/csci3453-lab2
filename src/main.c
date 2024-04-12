@@ -55,31 +55,25 @@ int main(int argc, char* argv[]) {
     /////////////////////////////
     //////////// LOOP ///////////
     /////////////////////////////
-    while (queue_size) {
-
-        // add context time switch
-        current_time += .5;
-
-        // calculate some queue stats
-        if (! q->response_time) {
-            q->response_time = current_time;
-            // set waiting time and response time at the same time
-            q->waiting_time += current_time - pcb->arrival;
-        }
-
+    while (queue_first != NULL) {
 
         // depending on our algorithm, let's handle this
         switch (algo) {
-        case FCFS:
-            current_time += pcb->burst;
-            q->completion_time = current_time;
-            q->last_burst_end = current_time;
-            q->n_context = 1;
-            break;
-        
-        default:
-            break;
-        }
+            case FCFS:
+                // advance queue time to end of first item
+                current_time = q->start_time + pcb->burst;
+                do_tick();
+                break;
+            
+            case SRTF:
+                // advance queue time to end of first item
+                current_time = q->start_time + pcb->burst;
+                do_tick();
+                break;
+            
+            default:
+                break;
+            }
 
     }
 
