@@ -95,6 +95,8 @@ void add_pcb_to_input_queue(PCB* new_pcb) {
 
 
 
+// simulates a new job arriving
+// pops input_queue, inserts to active_queue
 void receive_next_job() {
 
     // pull queue item off input queue
@@ -183,6 +185,8 @@ void receive_next_job() {
 
 
 
+
+// inserts a PCB queue item after a specified item in the active queue
 void insert_pcb_into_queue(queue_member* to_be_inserted, queue_member* insert_after) {
 
     // if its not the first in the queue
@@ -208,11 +212,13 @@ void insert_pcb_into_queue(queue_member* to_be_inserted, queue_member* insert_af
             queue_first->before = to_be_inserted;
             to_be_inserted->after = queue_first;
             queue_first = to_be_inserted;
+            queue_size++;
         }
 
     }
 
 }
+
 
 
 
@@ -235,42 +241,86 @@ void get_aggregate_stats(queue_member* to_be_inserted, queue_member* insert_befo
 }
 
 
-void do_tick() {
-    queue_member* one = queue_first;
-    queue_member* two = one->after;
+void context_switch() {
 
-    // one stats
-    one->last_burst_end = current_time;
-    one->turn_around_time = one->completion_time - one->pcb->arrival;
-    one->waiting_time = one->turn_around_time - one->running_burst_time;
-    one->response_time = one->start_time - one->pcb->arrival;
-    one->running_burst_time += one->last_burst_end - one->last_burst_start;
-    one->remaining_burst_time = one->running_burst_time - one->pcb->burst;
+    //////////////////////
+    // end running item //
+    //////////////////////
+    queue_first->last_burst_end = current_time;
+    queue_first->running_burst_time += queue_first->last_burst_end - queue_first->last_burst_start;
+    queue_member* next_queue_item = queue_first->after;
+    int running_item_finished = queue_first->remaining_burst_time == 0;
+
+    // if the running item is now finished
+    if (running_item_finished) {
+        // save some stats
+        queue_first->completion_time = current_time;
+        queue_first->turn_around_time = queue_first->completion_time - queue_first->pcb->arrival;
+        queue_first->response_time = queue_first->start_time - queue_first->pcb->arrival;
+
+        // add into completed queue
+        queue_first->before = completed_queue_last;
+        queue_first->after = NULL;
+        if (completed_queue_first == NULL) {
+            completed_queue_first = completed_queue_last = queue_first;
+            completed_queue_size = 1;
+        } else {
+            completed_queue_last->after = queue_first;
+            completed_queue_last = queue_first;
+            completed_queue_size++;
+        }
+
+        // pop from active queue
+        queue_first = next_queue_item;
+        queue_size--;
+
+    }
+
+
+    ///////////////////
+    // overhead time //
+    ///////////////////
+
+    // is there still more than one item in the queue?  switch to the next
+    if (!running_item_finished && queue_size > 1) {
+        queue_first = next_queue_item;
+    // one item left or zero items in queue? no context switch
+    } else if (queue_size == 0 || queue_size == 1) {
+        return;
+    // less than zero items in queue?  problem
+    } else {
+        printf("Unknown error: unknown state (negative queue size)");
+        exit(1);
+    }
+
+    // add overhead time
+    current_time += CONTEXT_SWITCH_COST;
+
+
+    ////////////////////
+    // start new item //
+    ////////////////////
+    // if it's the first time running, record some metadata
+    if (queue_first->start_time == -1) {
+        queue_first->start_time = current_time;
+        queue_first->response_time = current_time - queue_first->pcb->arrival;
+        queue_first->waiting_time = queue_first->response_time;  // same value for now
+        queue_first->n_context = 0;
+        queue_first->last_burst_start = current_time;
+        queue_first->running_burst_time = 0;
+        queue_first->remaining_burst_time = queue_first->pcb->remaining;
+    }
+        
+        
+}
+
+
+
+void do_tick() {
 
     // is it finiished?
-    if (one->remaining_burst_time <= 0) {
-        // send off the first queue item to completed_queue
-        one->completion_time = current_time;
-        // add to the completed queue
-        completed_queue_last->after = one;
-        one->before = completed_queue_last;
-        completed_queue_last = one;
-        completed_queue_last->after = NULL;
-
-        // set up the second queue item
-        two->before = NULL;
-        queue_first = two;
-        // add context time switch
-        current_time += .5;
-        queue_size -= 1;
+    if (queue_first->remaining_burst_time <= 0) {
+        context_switch();
     }
-
-    //two stats
-    two->n_context += 1;
-    if (!two->start_time) {
-        two->start_time = current_time;
-    }
-    two->waiting_time += current_time - (two->last_burst_end || two->pcb->arrival);
-    two->last_burst_start = current_time;
 
 }

@@ -31,50 +31,24 @@ int main(int argc, char* argv[]) {
     }
 
 
-    /***************************************************************************
-    ****************************************************************************
-    ****************************************************************************
-    ****  MAIN LOOP *** MAIN LOOP *** MAIN LOOP***  MAIN LOOP *** MAIN LOOP ****
-    ****  MAIN LOOP *** MAIN LOOP *** MAIN LOOP***  MAIN LOOP *** MAIN LOOP ****
-    ****  MAIN LOOP *** MAIN LOOP *** MAIN LOOP***  MAIN LOOP *** MAIN LOOP ****
-    ****  MAIN LOOP *** MAIN LOOP *** MAIN LOOP***  MAIN LOOP *** MAIN LOOP ****
-    ****  MAIN LOOP *** MAIN LOOP *** MAIN LOOP***  MAIN LOOP *** MAIN LOOP ****
-    ****************************************************************************
-    ****************************************************************************
-    ****************************************************************************/
+    /////////////////////////////
+    ///////   MAIN LOOP /////////
+    /////////////////////////////
 
     // read the first in queue
     current_time = 0;
-    load_input_file(input_file, algo);
+    load_input_file(input_file);
     queue_member* this_queue_item = queue_first;
 
-    // some "macros" to make life easier
-#define q this_queue_item
-#define pcb this_queue_item->pcb
 
-    /////////////////////////////
-    //////////// LOOP ///////////
-    /////////////////////////////
-    while (queue_first != NULL) {
+    // loop while we still have queue items
+    while (queue_first != NULL && input_queue_first != NULL) {
 
-        // depending on our algorithm, let's handle this
-        switch (algo) {
-            case FCFS:
-                // advance queue time to end of first item
-                current_time = q->start_time + pcb->burst;
-                do_tick();
-                break;
-            
-            case SRTF:
-                // advance queue time to end of first item
-                current_time = q->start_time + pcb->burst;
-                do_tick();
-                break;
-            
-            default:
-                break;
-            }
+        if (input_queue_first->pcb->arrival <= current_time) {
+            receive_next_job();
+        }
 
+        do_tick();
     }
 
     return 0;
