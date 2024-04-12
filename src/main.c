@@ -31,56 +31,24 @@ int main(int argc, char* argv[]) {
     }
 
 
-    /***************************************************************************
-    ****************************************************************************
-    ****************************************************************************
-    ****  MAIN LOOP *** MAIN LOOP *** MAIN LOOP***  MAIN LOOP *** MAIN LOOP ****
-    ****  MAIN LOOP *** MAIN LOOP *** MAIN LOOP***  MAIN LOOP *** MAIN LOOP ****
-    ****  MAIN LOOP *** MAIN LOOP *** MAIN LOOP***  MAIN LOOP *** MAIN LOOP ****
-    ****  MAIN LOOP *** MAIN LOOP *** MAIN LOOP***  MAIN LOOP *** MAIN LOOP ****
-    ****  MAIN LOOP *** MAIN LOOP *** MAIN LOOP***  MAIN LOOP *** MAIN LOOP ****
-    ****************************************************************************
-    ****************************************************************************
-    ****************************************************************************/
+    /////////////////////////////
+    ///////   MAIN LOOP /////////
+    /////////////////////////////
 
     // read the first in queue
     current_time = 0;
-    load_input_file(input_file, algo);
+    load_input_file(input_file);
     queue_member* this_queue_item = queue_first;
 
-    // some "macros" to make life easier
-#define q this_queue_item
-#define pcb this_queue_item->pcb
 
-    /////////////////////////////
-    //////////// LOOP ///////////
-    /////////////////////////////
-    while (queue_size) {
+    // loop while we still have queue items
+    while (queue_first != NULL && input_queue_first != NULL) {
 
-        // add context time switch
-        current_time += .5;
-
-        // calculate some queue stats
-        if (! q->response_time) {
-            q->response_time = current_time;
-            // set waiting time and response time at the same time
-            q->waiting_time += current_time - pcb->arrival;
+        if (input_queue_first->pcb->arrival <= current_time) {
+            receive_next_job();
         }
 
-
-        // depending on our algorithm, let's handle this
-        switch (algo) {
-        case FCFS:
-            current_time += pcb->burst;
-            q->completion_time = current_time;
-            q->last_burst_end = current_time;
-            q->n_context = 1;
-            break;
-        
-        default:
-            break;
-        }
-
+        do_tick();
     }
 
     return 0;

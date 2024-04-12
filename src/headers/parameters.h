@@ -14,6 +14,7 @@ enum algorithm {
 
 // VERY IMPLOLRTANT
 float current_time;
+enum algorithm algo;
 
 
 #endif

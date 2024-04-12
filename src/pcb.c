@@ -9,7 +9,7 @@
 #include "headers/parameters.h"
 
 
-queue_member* load_input_file(const char* filepath, enum algorithm algo) {
+queue_member* load_input_file(const char* filepath) {
     
     // open file
     FILE *fp = fopen(filepath, "r");
@@ -50,7 +50,7 @@ queue_member* load_input_file(const char* filepath, enum algorithm algo) {
         new_pcb->remaining = _burst;
 
         //now insert it into the queue
-        add_pcb_to_queue(new_pcb, algo);
+        add_pcb_to_input_queue(new_pcb);
 
     }
 
@@ -61,29 +61,65 @@ queue_member* load_input_file(const char* filepath, enum algorithm algo) {
 }
 
 
-void add_pcb_to_queue(PCB* new_pcb, enum algorithm algo) {
+void add_pcb_to_input_queue(PCB* new_pcb) {
 
-    // we need this PCB as a queue
-    queue_member* new_queued_PCB = malloc(sizeof(queue_member));
-    memcpy(new_queued_PCB, (void*)&blank_queue_member, sizeof(queue_member));
-    new_queued_PCB->pcb = new_pcb;
-    queue_size += 1;
+    // we need this PCB as a queue object
+    queue_member* new_queued_pcb = malloc(sizeof(queue_member));
+    memcpy(new_queued_pcb, (void*)&blank_queue_member, sizeof(queue_member));
+    new_queued_pcb->pcb = new_pcb;
 
-    // is it the vert first queue item? easy
+    // is it the very first queue item
+    if (input_queue_first == NULL) {
+        input_queue_first = input_queue_last = new_queued_pcb;
+        input_queue_size = 1;
+        return;
+    // proper arrival time
+    } else if (new_queued_pcb->pcb->arrival >= input_queue_last->pcb->arrival) {
+        new_queued_pcb->before = input_queue_last;
+        input_queue_last->after = new_queued_pcb;
+        input_queue_last = new_queued_pcb;
+        input_queue_size++;
+        return;
+    // TODO: bad arrival time, search backwards and insert
+    } else if (new_queued_pcb->pcb->arrival < input_queue_last->pcb->arrival) {
+        printf("Unhandled input error: arrival time is non-sequential.");
+        exit(1);
+    // this should never happen
+    } else {
+        printf("Unhandled input error: unknown input condition: add_pcb_to_input_queue()");
+        exit(1);
+    }
+
+}
+
+
+
+
+// simulates a new job arriving
+// pops input_queue, inserts to active_queue
+void receive_next_job() {
+
+    // pull queue item off input queue
+    queue_member* new_queued_pcb = input_queue_first;
+    if (new_queued_pcb == NULL) {
+        return;
+    }
+    input_queue_first = input_queue_first->after;
+    input_queue_first->before = NULL;
+    input_queue_size--;
+
+
+    // if active queue is empty, just set it and be done
     if (queue_first == NULL) {
-        queue_first = new_queued_PCB;
+        queue_first = queue_last = new_queued_pcb;
+        queue_size = 1;
         return;
     }
 
-    // easy one first, if FCFS just instert it at the end
+
+    // if FCFS just insert it at the end
     if (algo == FCFS) {
-        // new queue item get new predecessor
-        new_queued_PCB->before = queue_last;
-        // last queue item gets new follower
-        queue_last->after = new_queued_PCB;
-        // new_queued_PCB->after remains NULL, signifying the end
-        // save the last queue item for easy access next time
-        queue_last = new_queued_PCB;
+        insert_pcb_into_queue(new_queued_pcb, queue_last);
         return;
     }
 
@@ -91,93 +127,200 @@ void add_pcb_to_queue(PCB* new_pcb, enum algorithm algo) {
     // now for SRTF
     if (algo == SRTF) {
 
-        // start at front and compare remaining run times
-        queue_member* old_queued_PCB = queue_first;
+        // start at front
+        queue_member* current_queue_item = queue_first;
         
-        while (old_queued_PCB->after != NULL) {
-            // we found a shorter remaining time, insert it into the linked list
-            if (new_queued_PCB->pcb->remaining < old_queued_PCB->pcb->remaining) {
+        // loop to compare run times and insert
+        while (current_queue_item != NULL) {
 
-                // calculate new PCCB wait time
-                float this_wait_time = current_time - new_queued_PCB->last_burst_end;
-                new_queued_PCB->waiting_time += this_wait_time;
-                
-                // calculate the burst effect
-                old_queued_PCB->last_burst_end = current_time;
-                float this_burst = old_queued_PCB->last_burst_end - old_queued_PCB->last_burst_start;
-                old_queued_PCB->running_burst_time += this_burst;
-                old_queued_PCB->pcb->remaining -= this_burst;
-
-                // is it finished? remove it from the queue
-                if (old_queued_PCB->pcb->remaining <= 0) {
-                    if (old_queued_PCB->before != NULL) {
-                        old_queued_PCB->before->after = old_queued_PCB->after;
-                    }
-                    if (old_queued_PCB->after != NULL) {
-                        old_queued_PCB->after->before = old_queued_PCB->before;
-                    }
-                }
-
-                // next let's swap them in the queue
-                // new PCB takes old PCB's predecessor and makes it its follower
-                new_queued_PCB->before = old_queued_PCB->before;
-                new_queued_PCB->after = old_queued_PCB;
-                // Old PCB takes new PCB as predecesssor
-                old_queued_PCB->before = new_queued_PCB;
-                // old PCB keeps the same follower, and we exit function
-
+            // we found a shorter remaining time, insert it into the linked list before current item
+            if (new_queued_pcb->pcb->remaining < current_queue_item->pcb->remaining) {
+                insert_pcb_into_queue(new_queued_pcb, current_queue_item->before);
+                return;
             }
+
+            // loop to next one
+            current_queue_item = current_queue_item->after;
+
         }
     
         // if this line is executing that means we made it all the way the to the end of the queue without finding a shorter job time, insert it at the end
-        old_queued_PCB->after = new_queued_PCB;
-        new_queued_PCB->before = old_queued_PCB;
-
-        // done!
+        insert_pcb_into_queue(new_queued_pcb, queue_last);
         return;
 
     }
+
 
 
     // now for RR
     if (algo == RR) {
 
-        // start at front and compare remaining run times
-        queue_member* current_queued_PCB = queue_first;
+        // start at front
+        queue_member* current_queue_item = queue_first;
         
-        while (current_queued_PCB->after != NULL) {
+        // loop to compare priorities
+        while (current_queue_item != NULL) {
             
-            // we found a shorter remaining time, insert it into the linked list
-            if (new_queued_PCB->pcb->priority < current_queued_PCB->pcb->priority) {
-                // new PCB takes old PCB's predecessor
-                new_queued_PCB->before = current_queued_PCB->before;
-                // Old PCB takes new PCB as predecesssor
-                current_queued_PCB->before = new_queued_PCB;
-                // new PCB takes old PCB as followor
-                new_queued_PCB->after = current_queued_PCB;
-                // old PCB keeps the same follower, and we exit function
+            // we found a lower priority, insert it before the current list item
+            if (new_queued_pcb->pcb->priority < current_queue_item->pcb->priority) {
+                insert_pcb_into_queue(new_queued_pcb, current_queue_item->before);
                 return;
             }
+
         }
     
-        // if this line is executing that means we made it all the way the to the end of the queue without finding a shorter job time, insert it at the end
-        current_queued_PCB->after = new_queued_PCB;
-        new_queued_PCB->before = current_queued_PCB;
-        queue_last = new_pcb;
-
-        // done!
+        // if this line is executing that means we made it all the way the to the end of the queue without finding a smaller priority, insert it at the end
+        insert_pcb_into_queue(new_queued_pcb, queue_last);
         return;
 
     }
+
+
+
+    // this should never execute
+    printf("Unknown error: unknown state or no algorithm in receive_next_job()");
+    exit(1);
     
 }
 
 
 
-void insert_pcb_into_queue(queue_member* to_be_inserted, queue_member* before, queue_member* after){
 
-                // calculate new PCCB wait time
-                float this_wait_time = current_time - to_be_inserted->last_burst_end;
-                to_be_inserted->waiting_time += this_wait_time;
+// inserts a PCB queue item after a specified item in the active queue
+void insert_pcb_into_queue(queue_member* to_be_inserted, queue_member* insert_after) {
+
+    // if its not the first in the queue
+    if (insert_after != NULL) {
+
+        // next let's swap them into the queue
+        to_be_inserted->before = insert_after;
+        to_be_inserted->after = insert_after->after;
+        // Old PCB takes new PCB as predecesssor
+        insert_after->after = to_be_inserted;
+        // increase counter
+        queue_size++;
+
+    // we need to add to front of queue
+    } else {
+
+        // the queue is empty
+        if (queue_first == NULL) {
+            queue_first = queue_last = to_be_inserted;
+            queue_size = 1;
+        // the queue is not empty, we need to swap it in
+        } else {
+            queue_first->before = to_be_inserted;
+            to_be_inserted->after = queue_first;
+            queue_first = to_be_inserted;
+            queue_size++;
+        }
+
+    }
+
+}
+
+
+
+
+
+void get_aggregate_stats(queue_member* to_be_inserted, queue_member* insert_before) {
+
+    // calculate new PCB wait time
+    float this_wait_time = current_time - to_be_inserted->last_burst_end;
+    to_be_inserted->waiting_time += this_wait_time;
+    
+    // if it's not the very first in the queue
+    if (insert_before != NULL) {
+        // find the old PCB burst time
+        insert_before->last_burst_end = current_time;
+        float this_burst = insert_before->last_burst_end - insert_before->last_burst_start;
+        insert_before->running_burst_time += this_burst;
+        insert_before->pcb->remaining -= this_burst;
+    }
+
+}
+
+
+void context_switch() {
+
+    //////////////////////
+    // end running item //
+    //////////////////////
+    queue_first->last_burst_end = current_time;
+    queue_first->running_burst_time += queue_first->last_burst_end - queue_first->last_burst_start;
+    queue_member* next_queue_item = queue_first->after;
+    int running_item_finished = queue_first->remaining_burst_time == 0;
+
+    // if the running item is now finished
+    if (running_item_finished) {
+        // save some stats
+        queue_first->completion_time = current_time;
+        queue_first->turn_around_time = queue_first->completion_time - queue_first->pcb->arrival;
+        queue_first->response_time = queue_first->start_time - queue_first->pcb->arrival;
+
+        // add into completed queue
+        queue_first->before = completed_queue_last;
+        queue_first->after = NULL;
+        if (completed_queue_first == NULL) {
+            completed_queue_first = completed_queue_last = queue_first;
+            completed_queue_size = 1;
+        } else {
+            completed_queue_last->after = queue_first;
+            completed_queue_last = queue_first;
+            completed_queue_size++;
+        }
+
+        // pop from active queue
+        queue_first = next_queue_item;
+        queue_size--;
+
+    }
+
+
+    ///////////////////
+    // overhead time //
+    ///////////////////
+
+    // is there still more than one item in the queue?  switch to the next
+    if (!running_item_finished && queue_size > 1) {
+        queue_first = next_queue_item;
+    // one item left or zero items in queue? no context switch
+    } else if (queue_size == 0 || queue_size == 1) {
+        return;
+    // less than zero items in queue?  problem
+    } else {
+        printf("Unknown error: unknown state (negative queue size)");
+        exit(1);
+    }
+
+    // add overhead time
+    current_time += CONTEXT_SWITCH_COST;
+
+
+    ////////////////////
+    // start new item //
+    ////////////////////
+    // if it's the first time running, record some metadata
+    if (queue_first->start_time == -1) {
+        queue_first->start_time = current_time;
+        queue_first->response_time = current_time - queue_first->pcb->arrival;
+        queue_first->waiting_time = queue_first->response_time;  // same value for now
+        queue_first->n_context = 0;
+        queue_first->last_burst_start = current_time;
+        queue_first->running_burst_time = 0;
+        queue_first->remaining_burst_time = queue_first->pcb->remaining;
+    }
+        
+        
+}
+
+
+
+void do_tick() {
+
+    // is it finiished?
+    if (queue_first->remaining_burst_time <= 0) {
+        context_switch();
+    }
 
 }
