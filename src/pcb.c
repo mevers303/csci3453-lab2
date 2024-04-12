@@ -50,7 +50,7 @@ queue_member* load_input_file(const char* filepath) {
         new_pcb->remaining = _burst;
 
         //now insert it into the queue
-        add_pcb_to_input_queue(new_pcb, algo);
+        add_pcb_to_input_queue(new_pcb);
 
     }
 
@@ -105,7 +105,7 @@ void transfer_from_input_to_active() {
     input_queue_size--;
 
 
-    // if active queue is empty, just set 
+    // if active queue is empty, just set it and be done
     if (queue_first == NULL) {
         queue_first = queue_last = new_queued_pcb;
         queue_size = 1;
@@ -124,25 +124,22 @@ void transfer_from_input_to_active() {
     if (algo == SRTF) {
 
         // start at front and compare remaining run times
-        queue_member* queue_i = queue_first;
+        queue_member* current_queue_item = queue_first;
         
         // if it's not the very first one
-        while (queue_i != NULL) {
-            // we found a shorter remaining time, insert it into the linked list
-            if (new_queued_pcb->pcb->remaining < queue_i->pcb->remaining) {
-                insert_pcb_into_queue(new_queued_pcb, queue_i->before);
+        while (current_queue_item != NULL) {
+            // we found a shorter remaining time, insert it into the linked list before current item
+            if (new_queued_pcb->pcb->remaining < current_queue_item->pcb->remaining) {
+                insert_pcb_into_queue(new_queued_pcb, current_queue_item->before);
                 return;
             } else {
                 // loop to next one
-                queue_i = queue_i->after;
+                current_queue_item = current_queue_item->after;
             }
         }
     
         // if this line is executing that means we made it all the way the to the end of the queue without finding a shorter job time, insert it at the end
-        queue_i->after = new_queued_pcb;
-        new_queued_pcb->before = queue_i;
-
-        // done!
+        insert_pcb_into_queue(new_queued_pcb, queue_last);
         return;
 
     }
