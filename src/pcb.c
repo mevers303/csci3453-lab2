@@ -215,6 +215,11 @@ void insert_pcb_into_queue(queue_member* to_be_inserted, queue_member* insert_af
             queue_size++;
         }
 
+        // also this entails a context switch if it is already running
+        if (current_time > 0) {
+            context_switch();
+        }
+        
     }
 
 }
@@ -231,7 +236,7 @@ void context_switch() {
     queue_member* next_queue_item = queue_first->after;
     int running_item_finished = queue_first->remaining_burst_time == 0;
 
-    // if the running item is now finished
+    // if the running item is now finished, finalize the stats and remove from queue
     if (running_item_finished) {
 
         // save some stats
@@ -262,7 +267,7 @@ void context_switch() {
     // overhead time //
     ///////////////////
 
-    // is there still more than one item in the queue?  switch to the next
+    // is there still more than one item in the queue? move to the back of queue and switch to the next
     if (!running_item_finished && queue_size > 1) {
         queue_first = next_queue_item;
     // one item left or zero items in queue? no context switch
@@ -298,12 +303,17 @@ void context_switch() {
         queue_first->n_context++;
     }
         
-        
+
 }
 
 
 
 void do_tick() {
+
+    // sanity check, empty queue
+    if (queue_first == NULL) {
+        return;
+    }
 
     // update current item
     queue_first->running_burst_time++;

@@ -12,22 +12,25 @@ int main(int argc, char* argv[]) {
         printf("Improper arguments");
     }
     const char* input_file = argv[1];
+
     // sanity check algorithm enum
-    int alg_i = atoi(argv[2]);
-    if (alg_i < 0 ||  alg_i > 2) {
-        printf("Algorithm selection must be between [0, 2].");
-        return 1;
+    int algo_i = atoi(argv[2]);
+    if (algo_i < 0 ||  algo_i > 2) {
+        printf("Algorithm selection must be between [0, 2] in the 2nd argument.");
+        exit(1);
     }
-    const enum algorithm algo = alg_i;
-    int quantum_size = -1;
+    // we're good, save algorithm enum
+    algo = algo_i;
+
+    // is a quantum provided?
     if (argc == 4) {
-        quantum_size = atoi(argv[3]);
+        quantum_size = atof(argv[3]);
     }
 
     // sanity check for RR and quantum size
-    if (algo == RR && quantum_size == -1) {
-        printf("You must select a proper quantum size.");
-        return 1;
+    if (algo == RR && quantum_size <= 0) {
+        printf("Since the algorithm is Round Robin (2), you must provide a proper quantum size in the 3rd argument greater than 0.");
+        exit(1);
     }
 
 
@@ -42,11 +45,19 @@ int main(int argc, char* argv[]) {
 
 
     // loop while we still have queue items
-    while (queue_first != NULL && input_queue_first != NULL) {
+    while (!(queue_first == NULL && input_queue_first == NULL)) {
 
         // check if a new process has arrived
         if (input_queue_first != NULL && input_queue_first->pcb->arrival <= current_time) {
-            receive_next_job();
+            queue_member* old_queue_first = queue_first;
+            // loop in case of multiple arrivals
+            while (input_queue_first->pcb->arrival <= current_time) {
+                receive_next_job();
+            }
+            // was something added to the front of the queue? do a context switch
+            if (old_queue_first != queue_first) {
+                context_switch();
+            }
         }
 
         do_tick();

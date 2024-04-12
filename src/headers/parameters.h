@@ -12,9 +12,11 @@ enum algorithm {
     RR = 2
 };
 
-// VERY IMPLOLRTANT
-float current_time;
-enum algorithm algo;
+// VERY IMPOLRTANT
+float current_time = -1;
+float quantum_size = -1;
+enum algorithm algo = FCFS;
+float last_quantum_start = -1;
 
 
 #endif
