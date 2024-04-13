@@ -189,9 +189,9 @@ void do_output() {
 
     // print the title
     printf("********************************************************************************");
-    printf("********************  Algorithm: %s                      *********************", algo_s);
+    printf("********************  Algorithm: %s                      *********************\n", algo_s);
     if (algo == RR) {
-        printf("********************  Tasks: %i Quantum: %f                *********************", completed_queue_size, quantum_size);
+        printf("********************  Tasks: %i Quantum: %f                *********************\n", completed_queue_size, quantum_size);
     }
     printf("********************************************************************************");
 
@@ -203,7 +203,7 @@ void do_output() {
     // loop through complete items
     queue_member* this = completed_queue_first;
     while (this != NULL) {
-        printf("%i,%i,%f,%f,%f,%f,%f,%i", this->pcb->pid,
+        printf("%i,%i,%f,%f,%f,%f,%f,%i\n", this->pcb->pid,
                                           this->pcb->arrival,
                                           this->running_time,
                                           this->completion_time,
@@ -214,10 +214,10 @@ void do_output() {
     }
     
     // print averages
-    printf("Average run_time: %i", (int)(total_run_time / completed_queue_size));
-    printf("Average wait_time: %i", (int)(total_run_time / total_wait_time));
-    printf("Average turn_around: %i", (int)(total_run_time / total_turn_around_time));
-    printf("Average total_response_time: %i", (int)(total_run_time / completed_queue_size));
-    printf("Total n_context: %i", (total_n_context));
+    printf("Average run_time: %i\n", (int)(total_run_time / completed_queue_size));
+    printf("Average wait_time: %i\n", (int)(total_run_time / total_wait_time));
+    printf("Average turn_around: %i\n", (int)(total_run_time / total_turn_around_time));
+    printf("Average total_response_time: %i\n", (int)(total_run_time / completed_queue_size));
+    printf("Total n_context: %i\n", (total_n_context));
 
 }

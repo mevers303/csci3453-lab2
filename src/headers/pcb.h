@@ -27,7 +27,6 @@ struct _pcb {
     int remaining;
 };
 typedef struct _pcb PCB;
-struct _pcb test;
 
 
 // QUEUE type
@@ -50,38 +49,24 @@ struct _queue_member {
 typedef struct _queue_member queue_member;
 
 // create a blank queue_member we can use for mem_copy()
-queue_member blank_queue_member = {
-    .before = NULL,
-    .after = NULL,
-    .pcb = NULL,
-    .start_time = -1,
-    .waiting_time = -1,
-    .completion_time = -1,
-    .turn_around_time = -1,
-    .response_time = -1,
-    .n_context = -1,
-    .last_burst_start = -1,
-    .last_burst_end = -1,
-    .running_time = -1,
-    .remaining_time = -1
-};
+extern queue_member blank_queue_member;
 
 
 ////////////////
 //// QUEUES ////
 ////////////////
 // ACTIVE queue
-queue_member* current_process = NULL;
-queue_member* queue_last = NULL;
-int queue_size = 0;
+extern queue_member* current_process;
+extern queue_member* queue_last;
+extern int queue_size;
 // INPUT queue
-queue_member* input_queue_first = NULL;
-queue_member* input_queue_last = NULL;
-int input_queue_size = 0;
+extern queue_member* input_queue_first;
+extern queue_member* input_queue_last;
+extern int input_queue_size;
 // COMPLETED queue
-queue_member* completed_queue_first = NULL;
-queue_member* completed_queue_last = NULL;
-int completed_queue_size = 0;
+extern queue_member* completed_queue_first;
+extern queue_member* completed_queue_last;
+extern int completed_queue_size;
 
 
 

@@ -8,7 +8,7 @@
 #define PARAMETERS_H
 
 // defined by assignment
-const float CONTEXT_SWITCH_COST = 0.5;
+extern const float CONTEXT_SWITCH_COST;
 
 // enum for algorithm names
 enum algorithm {
@@ -18,10 +18,10 @@ enum algorithm {
 };
 
 // GLOBAL VARS
-float current_time = -1;
-float quantum_size = -1;
-enum algorithm algo = FCFS;
-float last_quantum_start = -1;
+extern float current_time;
+extern float quantum_size;
+extern enum algorithm algo;
+extern float last_quantum_start;
 
 
 #endif

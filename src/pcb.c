@@ -10,9 +10,51 @@
 #include <string.h>
 
 // project includes
-#include "headers/pcb.h"
 #include "headers/parameters.h"
 #include "headers/processes.h"
+#include "headers/pcb.h"
+
+
+
+/**********************************************
+ *                                            *
+ *               TYPES + VARS                 *
+ *                                            *    
+***********************************************/
+
+// create a blank queue_member we can use for mem_copy()
+queue_member blank_queue_member = {
+    .before = NULL,
+    .after = NULL,
+    .pcb = NULL,
+    .start_time = -1,
+    .waiting_time = -1,
+    .completion_time = -1,
+    .turn_around_time = -1,
+    .response_time = -1,
+    .n_context = -1,
+    .last_burst_start = -1,
+    .last_burst_end = -1,
+    .running_time = -1,
+    .remaining_time = -1
+};
+
+
+////////////////
+//// QUEUES ////
+////////////////
+// ACTIVE queue
+queue_member* current_process = NULL;
+queue_member* queue_last = NULL;
+int queue_size = 0;
+// INPUT queue
+queue_member* input_queue_first = NULL;
+queue_member* input_queue_last = NULL;
+int input_queue_size = 0;
+// COMPLETED queue
+queue_member* completed_queue_first = NULL;
+queue_member* completed_queue_last = NULL;
+int completed_queue_size = 0;
 
 
 
@@ -31,7 +73,7 @@ queue_member* load_input_file(const char* filepath) {
     // open file
     FILE *fp = fopen(filepath, "r");
     if (fp == NULL) {
-        printf("Could not open <%s>", filepath);
+        printf("Could not open <%s>\n", filepath);
         exit(1);
     }
 
@@ -54,7 +96,7 @@ queue_member* load_input_file(const char* filepath) {
             break;
         }
         if (format_matches != 4 || _pid < 0 || _arrival < 0 || _burst < 0 || _priority < 0) {
-            printf("Improper formatting on line %i, skipping this line", line);
+            printf("Improper formatting on line %i (%i matches), skipping this line\n", line, format_matches);
             continue;
         }
 

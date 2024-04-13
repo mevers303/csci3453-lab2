@@ -15,6 +15,32 @@
 
 
 
+/**********************************************
+ *                                            *
+ *               TYPES + VARS                 *
+ *                                            *    
+***********************************************/
+
+// defined by assignment
+const float CONTEXT_SWITCH_COST = 0.5;
+
+
+// GLOBAL VARS
+float current_time = -1;
+float quantum_size = -1;
+enum algorithm algo = FCFS;
+float last_quantum_start = -1;
+
+
+
+
+
+
+/**********************************************
+ *                                            *
+ *                 FUNCTIONS                  *
+ *                                            *
+***********************************************/
 
 
 int main(int argc, char* argv[]) {
