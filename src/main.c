@@ -60,23 +60,23 @@ int main(int argc, char* argv[]) {
     if (algo = RR) {
         last_quantum_start = 0;
     }
-    queue_member* this_queue_item = queue_first;
+    queue_member* this_queue_item = current_process;
 
 
     // loop while we still have queue items
-    while (! (queue_first == NULL && input_queue_first == NULL)) {
+    while (queue_size > 0 || input_queue_size > 0) {
 
         // first, manage the queues
 
         // check if a new process has arrived
-        if (input_queue_first != NULL && input_queue_first->pcb->arrival <= current_time) {
-            queue_member* old_queue_first = queue_first;
+        if (input_queue_size > 0 && input_queue_first->pcb->arrival <= current_time) {
+            queue_member* old_current_process = current_process;
             // loop in case of multiple arrivals
             while (input_queue_first->pcb->arrival <= current_time) {
                 receive_next_job();
             }
             // was something added to the front of the queue? do a context switch
-            if (old_queue_first != queue_first) {
+            if (old_current_process != current_process && algo != RR) {
                 switch_process();
             }
         }
@@ -93,7 +93,7 @@ int main(int argc, char* argv[]) {
 
         
         // fourth, check if process just completed running, since switch_process() needs to be called before the time is incremented
-        if (queue_first->remaining_time <= 0) {
+        if (current_process->remaining_time <= 0) {
             // context switch checks for finished process and handles it
             switch_process();
         }
@@ -103,6 +103,8 @@ int main(int argc, char* argv[]) {
         current_time += 1;
     }
 
+    // fin
+    cleanup();
     return 0;
 
 }

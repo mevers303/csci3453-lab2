@@ -71,7 +71,7 @@ queue_member blank_queue_member = {
 //// QUEUES ////
 ////////////////
 // ACTIVE queue
-queue_member* queue_first = NULL;
+queue_member* current_process = NULL;
 queue_member* queue_last = NULL;
 int queue_size = 0;
 // INPUT queue
@@ -102,6 +102,8 @@ void add_pcb_to_input_queue(PCB* new_pcb);
 void insert_pcb_into_queue(queue_member* to_be_inserted, queue_member* insert_after);
 // simulates a new job arriving
 void receive_next_job();
+// frees memory
+void cleanup();
 
 
 #endif

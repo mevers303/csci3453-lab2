@@ -70,7 +70,7 @@ queue_member* load_input_file(const char* filepath) {
 
     //
     fclose(fp);
-    return queue_first;
+    return current_process;
 
 }
 
@@ -84,7 +84,7 @@ void add_pcb_to_input_queue(PCB* new_pcb) {
     new_queued_pcb->pcb = new_pcb;
 
     // is it the very first queue item
-    if (input_queue_first == NULL) {
+    if (input_queue_size == 0) {
         input_queue_first = input_queue_last = new_queued_pcb;
         input_queue_size = 1;
         return;
@@ -128,19 +128,37 @@ void insert_pcb_into_queue(queue_member* to_be_inserted, queue_member* insert_af
     } else {
 
         // the queue is empty
-        if (queue_first == NULL) {
-            queue_first = queue_last = to_be_inserted;
+        if (current_process == NULL) {
+
+            current_process = queue_last = to_be_inserted;
             queue_size = 1;
-        // the queue is not empty, we need to swap it in
+
+        // the queue is not empty and it's round robin, we need to swap it in behind current_process
+        } else if (algo == RR) {
+            // there are items in the ready queue, recurse this function and insert after current
+            if (current_process->after != NULL) {
+                insert_pcb_into_queue(to_be_inserted, current_process);
+                return;
+            // no items in ready queue behind current process
+            } else {
+                current_process->after = to_be_inserted;
+                to_be_inserted->before = current_process;
+                queue_last = to_be_inserted;
+                queue_size++;
+            }
+
+        // the queue is not empty, we need to swap it in the front
         } else {
-            queue_first->before = to_be_inserted;
-            to_be_inserted->after = queue_first;
-            queue_first = to_be_inserted;
+
+            current_process->before = to_be_inserted;
+            to_be_inserted->after = current_process;
+            current_process = to_be_inserted;
             queue_size++;
+
         }
 
         // also this entails a context switch if it is already running
-        if (current_time > 0) {
+        if (current_time > 0 && algo != RR) {
             switch_process();
         }
 
@@ -165,8 +183,8 @@ void receive_next_job() {
 
 
     // if active queue is empty, just set it and be done
-    if (queue_first == NULL) {
-        queue_first = queue_last = new_queued_pcb;
+    if (current_process == NULL) {
+        current_process = queue_last = new_queued_pcb;
         queue_size = 1;
         return;
     }
@@ -183,7 +201,7 @@ void receive_next_job() {
     if (algo == SRTF) {
 
         // start at front
-        queue_member* current_queue_item = queue_first;
+        queue_member* current_queue_item = current_process;
         
         // loop to compare run times and insert
         while (current_queue_item != NULL) {
@@ -211,7 +229,7 @@ void receive_next_job() {
     if (algo == RR) {
 
         // start at front
-        queue_member* current_queue_item = queue_first;
+        queue_member* current_queue_item = current_process;
         
         // loop to compare priorities
         while (current_queue_item != NULL) {
@@ -236,4 +254,40 @@ void receive_next_job() {
     printf("Unknown error: unknown state or no algorithm in receive_next_job()");
     exit(1);
     
+}
+
+
+
+// frees memory
+void cleanup() {
+
+    queue_member* this;
+
+    // active queue (should be empty at end of main())
+    this = current_process;
+    while (this != NULL) {
+        queue_member* next = this->after;
+        free(this->pcb);
+        free(this);
+        this = next;
+    }
+
+    // input queue (should be empty at end of main())
+    this = input_queue_first;
+    while (this != NULL) {
+        queue_member* next = this->after;
+        free(this->pcb);
+        free(this);
+        this = next;
+    }
+
+    // completed queue
+    this = completed_queue_first;
+    while (this != NULL) {
+        queue_member* next = this->after;
+        free(this->pcb);
+        free(this);
+        this = next;
+    }
+
 }
