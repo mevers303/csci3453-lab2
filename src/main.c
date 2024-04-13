@@ -6,10 +6,12 @@
 
 // standard includes
 #include <stdio.h>
+#include <stdlib.h>
 
 // project includes
 #include "headers/parameters.h"
 #include "headers/pcb.h"
+#include "headers/processes.h"
 
 
 
@@ -102,6 +104,11 @@ int main(int argc, char* argv[]) {
         // finally, increment the time for the next cycle
         current_time++;
     }
+
+
+    // output
+    do_output();
+
 
     // fin
     cleanup();

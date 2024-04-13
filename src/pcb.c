@@ -6,10 +6,13 @@
 
 // standard includes
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 // project includes
 #include "headers/pcb.h"
 #include "headers/parameters.h"
+#include "headers/processes.h"
 
 
 

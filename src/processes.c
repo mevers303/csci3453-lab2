@@ -8,6 +8,7 @@
 
 // standard includes
 #include <stdio.h>
+#include <stdlib.h>
 
 // project includes
 #include "headers/processes.h"
@@ -166,13 +167,13 @@ void do_output() {
     char* algo_s;
     switch (algo) {
         case FCFS:
-            algo = "FCFS";
+            algo_s = "FCFS";
             break;
         case SRTF:
-            algo = "FCFS";
+            algo_s = "FCFS";
             break;
         case RR:
-            algo = "RR  ";
+            algo_s = "RR  ";
             break;
         
         default:
@@ -190,7 +191,7 @@ void do_output() {
     printf("********************************************************************************");
     printf("********************  Algorithm: %s                      *********************", algo_s);
     if (algo == RR) {
-        printf("********************  Tasks: %i Quantum: %i                *********************", completed_queue_size, quantum_size);
+        printf("********************  Tasks: %i Quantum: %f                *********************", completed_queue_size, quantum_size);
     }
     printf("********************************************************************************");
 
@@ -202,7 +203,7 @@ void do_output() {
     // loop through complete items
     queue_member* this = completed_queue_first;
     while (this != NULL) {
-        printf("%i,%f,%f,%f,%f,%f,%f,%i", this->pcb->pid,
+        printf("%i,%i,%f,%f,%f,%f,%f,%i", this->pcb->pid,
                                           this->pcb->arrival,
                                           this->running_time,
                                           this->completion_time,
