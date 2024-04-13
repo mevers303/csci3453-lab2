@@ -100,7 +100,7 @@ int main(int argc, char* argv[]) {
 
 
         // finally, increment the time for the next cycle
-        current_time += 1;
+        current_time++;
     }
 
     // fin

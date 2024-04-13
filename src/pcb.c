@@ -37,7 +37,7 @@ queue_member* load_input_file(const char* filepath) {
     int format_matches = 0;
 
     while (format_matches != EOF) {
-        line += 1;
+        line++;
 
         // data from line
         int _pid = 0;

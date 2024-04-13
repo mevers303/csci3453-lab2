@@ -19,6 +19,8 @@ void do_tick();
 // switches between processes, performs context switch if necessary
 // runs BEFORE current_time is incremented at end of each tick
 void switch_process();
+// perform the output
+void do_output();
 
 
 #endif

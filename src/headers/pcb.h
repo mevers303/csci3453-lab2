@@ -41,7 +41,7 @@ struct _queue_member {
     float completion_time;
     float turn_around_time;
     float response_time;
-    float n_context;
+    int n_context;
     float last_burst_start;
     float last_burst_end;
     float running_time;

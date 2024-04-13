@@ -36,9 +36,9 @@ void switch_process() {
     // update metadata
     current_process->last_burst_end = current_time + 1;
     current_process->running_time += current_process->last_burst_end - current_process->last_burst_start;
-    // save the next item in queue, , we will be modifying queue_first before we need it later
+    // save the next item in queue, , we will be modifying current_process before we need it later
     queue_member* next_queue_item = current_process->after;
-    // boolean if the current item has finished running, we will be modifying queue_first before we need it later
+    // boolean if the current item has finished running, we will be modifying current_process before we need it later
     int running_item_finished = current_process->remaining_time <= 0;
 
     // if the running item is now finished, finalize the stats and remove from queue
@@ -49,16 +49,38 @@ void switch_process() {
         current_process->turn_around_time = current_process->completion_time - current_process->pcb->arrival;
         current_process->response_time = current_process->start_time - current_process->pcb->arrival;
 
-        // add into completed queue
-        current_process->before = completed_queue_last;
-        current_process->after = NULL;
-        if (completed_queue_size == 0) {
+        // add into completed queue in order of pid
+
+        // is it the first one?
+        if (completed_queue_size) {
+
+            queue_member* this = completed_queue_first;
+            while (this != NULL) {
+                if (current_process->pcb->pid < this->pcb->pid) {
+                    current_process->before = this->before;
+                    current_process->after = this;
+                    this->before = current_process;
+                    // is it the first item?
+                    if (current_process->before == NULL) {
+                        completed_queue_first = current_process;
+                    }
+                    // is it the last item?
+                    if (current_process->before == NULL) {
+                        completed_queue_last = current_process;
+                    }
+                }
+                break;
+            }
+
+            completed_queue_size++;
+
+        // it is the first one
+        } else {
+
+            current_process->before = current_process->after = NULL;
             completed_queue_first = completed_queue_last = current_process;
             completed_queue_size = 1;
-        } else {
-            completed_queue_last->after = current_process;
-            completed_queue_last = current_process;
-            completed_queue_size++;
+
         }
 
         // pop from active queue
@@ -91,6 +113,7 @@ void switch_process() {
     // add overhead time if it's not the very first tick and this isn't running because the last process finished
     if (current_time > 0 && running_item_finished) {
         current_time += CONTEXT_SWITCH_COST;
+        current_process->n_context++;
     }
 
     // round robin quantum management
@@ -114,7 +137,6 @@ void switch_process() {
     // it's a process that has run before
     } else {
         current_process->waiting_time += current_time - current_process->last_burst_end;
-        current_process->n_context++;
     }
         
 
@@ -132,5 +154,69 @@ void do_tick() {
     // update current item
     current_process->running_time++;
     current_process->remaining_time--;
+
+}
+
+
+
+// perform the output
+void do_output() {
+
+    // get the algorithm string
+    char* algo_s;
+    switch (algo) {
+        case FCFS:
+            algo = "FCFS";
+            break;
+        case SRTF:
+            algo = "FCFS";
+            break;
+        case RR:
+            algo = "RR  ";
+            break;
+        
+        default:
+            break;
+    }
+
+    // vars
+    float total_run_time;
+    float total_wait_time;
+    float total_turn_around_time;
+    float total_response_time;
+    int total_n_context;
+
+    // print the title
+    printf("********************************************************************************");
+    printf("********************  Algorithm: %s                      *********************", algo_s);
+    if (algo == RR) {
+        printf("********************  Tasks: %i Quantum: %i                *********************", completed_queue_size, quantum_size);
+    }
+    printf("********************************************************************************");
+
+    // print the table
+
+    // print table header
+    printf("pid,arrival,run_time,finish,wait_time,turn_around_time,response_time,n_context");
+
+    // loop through complete items
+    queue_member* this = completed_queue_first;
+    while (this != NULL) {
+        printf("%i,%f,%f,%f,%f,%f,%f,%i", this->pcb->pid,
+                                          this->pcb->arrival,
+                                          this->running_time,
+                                          this->completion_time,
+                                          this->waiting_time,
+                                          this->turn_around_time,
+                                          this->response_time,
+                                          this->n_context);
+    }
+    
+    // print averages
+    printf("Average run_time: %i", (int)(total_run_time / completed_queue_size));
+    printf("Average wait_time: %i", (int)(total_run_time / total_wait_time));
+    printf("Average turn_around: %i", (int)(total_run_time / total_turn_around_time));
+    printf("Average total_response_time: %i", (int)(total_run_time / completed_queue_size));
+    printf("Total n_context: %i", (total_n_context));
 
 }
