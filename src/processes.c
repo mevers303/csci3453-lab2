@@ -86,7 +86,9 @@ void switch_process() {
 
         // pop from active queue
         current_process = next_queue_item;
-        queue_size--;
+        if (queue_size > 0) {
+            queue_size--;
+        }
 
     }
 
@@ -106,7 +108,7 @@ void switch_process() {
         }
         return;
     // less than zero items in queue?  problem
-    } else {
+    } else if (queue_size < 0) {
         printf("Unknown error: unknown state (negative queue size)");
         exit(1);
     }

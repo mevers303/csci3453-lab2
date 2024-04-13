@@ -82,6 +82,7 @@ int main(int argc, char* argv[]) {
     /////////////////////////////
 
     // load the input queue
+    printf("Reading input file...\n");
     load_input_file(input_file);
     // initialize vars
     current_time = 0;
@@ -92,7 +93,11 @@ int main(int argc, char* argv[]) {
 
 
     // loop while we still have queue items
+    printf("Starting main loop...\n");
     while (queue_size > 0 || input_queue_size > 0) {
+
+        // debug output
+        printf("%.1f: queue_size=%i input_queue_size=%i\n", current_time, queue_size, input_queue_size);
 
         // first, manage the queues
 
@@ -129,6 +134,7 @@ int main(int argc, char* argv[]) {
 
         // finally, increment the time for the next cycle
         current_time++;
+
     }
 
 

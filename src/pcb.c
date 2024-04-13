@@ -91,7 +91,7 @@ queue_member* load_input_file(const char* filepath) {
         int _priority = 0;
 
         // read line
-        int format_matches = fscanf(fp, "%i[ ]*%i[ ]*%i[ ]*%i[ ]*\n", &_pid, &_arrival, &_burst, &_priority);
+        int format_matches = fscanf(fp, "%i %i %i %i", &_pid, &_arrival, &_burst, &_priority);
         if (format_matches == EOF) {
             break;
         }
