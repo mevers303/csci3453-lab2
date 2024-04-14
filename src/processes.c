@@ -81,6 +81,14 @@ void switch_process() {
                 break;
             }
 
+            // add to end of completed_queue
+            if (this == NULL) {
+                completed_queue_last->after = current_process;
+                current_process->before = completed_queue_last;
+                current_process->after = NULL;
+                completed_queue_last = current_process;
+            }
+
             completed_queue_size++;
 
         // it is the first one
