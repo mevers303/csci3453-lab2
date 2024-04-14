@@ -260,11 +260,11 @@ void do_output() {
     }
 
     // vars
-    float total_run_time;
-    float total_wait_time;
-    float total_turn_around_time;
-    float total_response_time;
-    int total_n_context;
+    float total_run_time = 0;
+    float total_wait_time = 0;
+    float total_turn_around_time = 0;
+    float total_response_time = 0;
+    int total_n_context = 0;
 
     // print the title
     printf("********************************************************************************\n");
@@ -282,6 +282,8 @@ void do_output() {
     // loop through complete items
     queue_member* this = completed_queue_first;
     while (this != NULL) {
+
+        // print this row
         printf("%i,%i,%f,%f,%f,%f,%f,%i\n", this->pcb->pid,
                                           this->pcb->arrival,
                                           this->running_time,
@@ -290,14 +292,23 @@ void do_output() {
                                           this->turn_around_time,
                                           this->response_time,
                                           this->n_context);
+
+        // add to totals
+        total_run_time += this->running_time;
+        total_wait_time += this->waiting_time;
+        total_turn_around_time += this->turn_around_time;
+        total_response_time += this->response_time;
+
+        // progress to next item
         this = this->after;
+
     }
     
     // print averages
-    printf("Average run_time: %i\n", (int)(total_run_time / completed_queue_size));
-    printf("Average wait_time: %i\n", (int)(total_run_time / total_wait_time));
-    printf("Average turn_around: %i\n", (int)(total_run_time / total_turn_around_time));
-    printf("Average total_response_time: %i\n", (int)(total_run_time / completed_queue_size));
+    printf("Average run_time: %.1f\n", total_run_time / completed_queue_size);
+    printf("Average wait_time: %.1f\n", total_wait_time / completed_queue_size);
+    printf("Average turn_around: %.1f\n", total_turn_around_time / completed_queue_size);
+    printf("Average total_response_time: %.1f\n", total_response_time / completed_queue_size);
     printf("Total n_context: %i\n", (total_n_context));
 
 }
