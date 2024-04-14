@@ -73,7 +73,7 @@ queue_member* load_input_file(const char* filepath) {
     // open file
     FILE *fp = fopen(filepath, "r");
     if (fp == NULL) {
-        printf("Could not open <%s>\\n", filepath);
+        printf("  -> Could not open <%s>\n", filepath);
         exit(1);
     }
 
@@ -96,7 +96,7 @@ queue_member* load_input_file(const char* filepath) {
             break;
         }
         if (format_matches != 4 || _pid < 0 || _arrival < 0 || _burst < 0 || _priority < 0) {
-            printf("Improper formatting on line %i (%i matches), skipping this line\\n", line, format_matches);
+            printf("  -> Improper formatting on line %i (%i matches), skipping this line\n", line, format_matches);
             continue;
         }
 
@@ -142,11 +142,11 @@ void add_pcb_to_input_queue(PCB* new_pcb) {
         return;
     // TODO: bad arrival time, search backwards and insert
     } else if (new_queued_pcb->pcb->arrival < input_queue_last->pcb->arrival) {
-        printf("Unhandled input error: arrival time is non-sequential.\n");
+        printf("  -> Unhandled input error: arrival time is non-sequential.\n");
         exit(1);
     // this should never happen
     } else {
-        printf("Unhandled input error: unknown input condition: add_pcb_to_input_queue()\n");
+        printf("  -> Unhandled input error: unknown input condition: add_pcb_to_input_queue()\n");
         exit(1);
     }
 
@@ -159,13 +159,13 @@ void add_pcb_to_input_queue(PCB* new_pcb) {
 void insert_pcb_into_queue(queue_member* to_be_inserted, queue_member* insert_after) {
 
     // debug print
-    printf("Inserting into queue...\n");
+    printf("  -> Inserting into queue...\n");
 
     // adding into the ready queue
     if (insert_after != NULL) {
 
         // debug print
-        printf("Inserting PID %i into ready queue...\\n", to_be_inserted->pcb->pid);
+        printf("  -> Inserting PID %i into ready queue...\n", to_be_inserted->pcb->pid);
 
         // next let's swap them into the queue
         to_be_inserted->before = insert_after;
@@ -182,7 +182,7 @@ void insert_pcb_into_queue(queue_member* to_be_inserted, queue_member* insert_af
         if (queue_size) {
 
             // debug print
-            printf("No running process, starting PID %i...\\n", to_be_inserted->pcb->pid);
+            printf("  -> No running process, starting PID %i...\n", to_be_inserted->pcb->pid);
 
             current_process = queue_last = to_be_inserted;
             queue_size = 1;
@@ -191,18 +191,18 @@ void insert_pcb_into_queue(queue_member* to_be_inserted, queue_member* insert_af
         } else if (algo == RR) {
 
             // debug print
-            printf("Detected running process, round robin operation...\n");
+            printf("  -> Detected running process, round robin operation...\n");
 
             // there are items in the ready queue, recurse this function and insert after current
             if (current_process->after != NULL) {
                 // debug print
-                printf("Inserting PID %i into front of ready queue..\n", to_be_inserted->pcb->pid);
+                printf("  -> Inserting PID %i into front of ready queue..\n", to_be_inserted->pcb->pid);
                 insert_pcb_into_queue(to_be_inserted, current_process);
                 return;
             // no items in ready queue behind current process
             } else {
                 // debug print
-                printf("Ready queue empty, inserting PID %i..\n", to_be_inserted->pcb->pid);
+                printf("  -> Ready queue empty, inserting PID %i..\n", to_be_inserted->pcb->pid);
                 current_process->after = to_be_inserted;
                 to_be_inserted->before = current_process;
                 queue_last = to_be_inserted;
@@ -213,18 +213,13 @@ void insert_pcb_into_queue(queue_member* to_be_inserted, queue_member* insert_af
         } else {
 
             // debug print
-            printf("Detected running process, performing context switch to PID %i..\n", to_be_inserted->pcb->pid);
+            printf("  -> Detected running process, performing context switch to PID %i..\n", to_be_inserted->pcb->pid);
 
             current_process->before = to_be_inserted;
             to_be_inserted->after = current_process;
             current_process = to_be_inserted;
             queue_size++;
 
-        }
-
-        // also this entails a context switch if it is already running
-        if (current_time > 0 && algo != RR) {
-            switch_process();
         }
 
     }
@@ -240,7 +235,7 @@ void receive_next_job() {
     // pull queue item off input queue
     queue_member* new_queued_pcb = input_queue_first;
     // debug print
-    printf("Receiving PID %i from input queue...\n", input_queue_first->pcb->pid);
+    printf("  -> Receiving PID %i from input queue...\n", input_queue_first->pcb->pid);
     if (new_queued_pcb == NULL) {
         return;
     }
@@ -252,7 +247,7 @@ void receive_next_job() {
     // if active queue is empty, just set it and be done
     if (!queue_size) {
         // debug print
-        printf("No running process detected, inserting as current process\n");
+        printf("  -> No running process detected, inserting as current process\n");
         current_process = queue_last = new_queued_pcb;
         queue_size = 1;
         return;
@@ -262,7 +257,7 @@ void receive_next_job() {
     // if FCFS just insert it at the end
     if (algo == FCFS) {
         // debug print
-        printf("Inserting at end of queue (FCFS)...\n");
+        printf("  -> Inserting at end of queue (FCFS)...\n");
         insert_pcb_into_queue(new_queued_pcb, queue_last);
         return;
     }
@@ -280,7 +275,7 @@ void receive_next_job() {
             // we found a shorter remaining time, insert it into the linked list before current item
             if (new_queued_pcb->pcb->remaining < current_queue_item->pcb->remaining) {
                 // debug print
-                printf("Inserting into ready queue after PID %i...\n", current_queue_item->before->pcb->pid);
+                printf("  -> Inserting into ready queue after PID %i...\n", current_queue_item->before->pcb->pid);
                 insert_pcb_into_queue(new_queued_pcb, current_queue_item->before);
                 return;
             }
@@ -310,7 +305,7 @@ void receive_next_job() {
             // we found a lower priority, insert it before the current list item
             if (new_queued_pcb->pcb->priority < current_queue_item->pcb->priority) {
                 // debug print
-                printf("Inserting into ready queue after PID %i...\n", current_queue_item->before->pcb->pid);
+                printf("  -> Inserting into ready queue after PID %i...\n", current_queue_item->before->pcb->pid);
                 insert_pcb_into_queue(new_queued_pcb, current_queue_item->before);
                 return;
             }
@@ -326,7 +321,7 @@ void receive_next_job() {
 
 
     // this should never execute
-    printf("Unknown error: unknown state or no algorithm in receive_next_job()\n");
+    printf("  -> Unknown error: unknown state or no algorithm in receive_next_job()\n");
     exit(1);
     
 }
