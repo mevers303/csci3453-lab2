@@ -140,7 +140,7 @@ void switch_process() {
         }
 
     // one item left or zero items in queue? no context switch
-    } else if (queue_size == 0 || queue_size == 1) {
+    } else if ((queue_size == 0 || queue_size == 1) && current_process->start_time >= 0) {
 
         // debug print
         printf("  -> Process switch requested, but the ready queue is empty (%i)\n", queue_size);
