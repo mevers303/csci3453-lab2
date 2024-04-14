@@ -175,6 +175,11 @@ void insert_pcb_into_queue(queue_member* to_be_inserted, queue_member* insert_af
         // increase counter
         queue_size++;
 
+        // was the last queue item changed?
+        if (insert_after == queue_last) {
+            queue_last = to_be_inserted;
+        }
+
     // we need to add as the current process or to the front of the ready queue
     } else {
 

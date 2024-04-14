@@ -40,6 +40,8 @@ void switch_process() {
     // update metadata
     current_process->last_burst_end = current_time + 1;
     current_process->running_time += current_process->last_burst_end - current_process->last_burst_start;
+    // we need to save this for later
+    queue_member* next_queue_item = current_process->after;
     // boolean if the current item has finished running, we will be modifying current_process before we need it later
     int running_item_finished = current_process->remaining_time <= 0 && current_process->start_time >= 0;
 
@@ -56,7 +58,7 @@ void switch_process() {
 
         // add into completed queue in order of pid
         // debug print
-        printf("  -> Adding to list of completed processes.  Number of completed processes: %i\n", completed_queue_size);
+        printf("  -> Adding to list of completed processes...\n");
 
         // it is not the first one
         if (completed_queue_size) {
@@ -90,11 +92,12 @@ void switch_process() {
 
         }
 
-        // pop from active queue
         // debug print
-        printf("  -> Removing from ready queue, queue size (plus current process): %i\n", queue_size);
+        printf("  -> Number of completed processes: %i\n", completed_queue_size);
+
+        // pop from active queue
         if (queue_size > 1) {
-            current_process = current_process->after;
+            current_process = next_queue_item;
             current_process->before = NULL;
         }
         if (queue_size > 0) {
@@ -110,6 +113,9 @@ void switch_process() {
     // switch current item //
     /////////////////////////
 
+    // debug print
+    printf("Switching...\n");
+
     // round robin: is there still more than one item in the queue? move to the back of queue and switch to the next
     if (!running_item_finished && queue_size > 1 && current_process->start_time >= 0) {
 
@@ -122,7 +128,7 @@ void switch_process() {
             current_process->after = NULL;
             queue_last->after = current_process;
             queue_last = current_process;
-            current_process = current_process->after;
+            current_process = next_queue_item;
             current_process->before = NULL;
 
         }
@@ -134,7 +140,7 @@ void switch_process() {
         // this entails a context switch
         if (current_time > 0) {
             // debug print
-            printf("  -> Context switch!  Adding overhead time...\n");
+            printf("Context switch!  Adding overhead time...\n");
             current_process->n_context++;
             current_time += CONTEXT_SWITCH_COST;
         }
@@ -168,6 +174,10 @@ void switch_process() {
     /////////////////////
     // start next item //
     /////////////////////
+
+    // debug print
+    printf("Starting...\n");
+
     // if it's the first time running, initialize some metadata
     if (current_process->start_time == -1) {
         // debug print
