@@ -246,7 +246,9 @@ void receive_next_job() {
         exit(1);
     }
     input_queue_first = input_queue_first->after;
-    input_queue_first->before = NULL;
+    if (input_queue_first != NULL) {
+        input_queue_first->before = NULL;
+    }
     input_queue_size--;
 
 
