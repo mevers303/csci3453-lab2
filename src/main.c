@@ -107,14 +107,17 @@ int main(int argc, char* argv[]) {
 
         // check if a new process has arrived
         if (input_queue_size > 0 && input_queue_first->pcb->arrival <= current_time) {
+            if (!input_queue_first) {
+                printf("ERROR: main() input_queue_first is NULL");
+            }
             queue_member* old_current_process = current_process;
             // loop in case of multiple arrivals
-            while (input_queue_first->pcb->arrival <= current_time) {
+            while (input_queue_first && input_queue_first->pcb->arrival <= current_time) {
                 receive_next_job();
             }
             // was something added to the front of the queue? do a context switch
             if (old_current_process != current_process && algo != RR) {
-                printf("switch_process #1\n");
+                printf("switch_process() #1\n");
                 switch_process();
             }
         }
@@ -123,7 +126,7 @@ int main(int argc, char* argv[]) {
         // second, check if context switch is needed for round robin
         if (algo == RR && current_time - last_quantum_start >= quantum_size) {
             printf("\n%i\n\n", algo);
-            printf("switch_process #2\n");
+            printf("switch_process() #2\n");
             switch_process();
         }
         
@@ -133,9 +136,9 @@ int main(int argc, char* argv[]) {
 
         
         // fourth, check if process just completed running, since switch_process() needs to be called before the time is incremented
-        if (current_process->remaining_time <= 0) {
+        if (current_process && current_process->remaining_time <= 0) {
             // context switch checks for finished process and handles it
-            printf("switch_process #3\n");
+            printf("switch_process() #3\n");
             switch_process();
         }
 

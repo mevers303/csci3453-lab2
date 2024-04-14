@@ -229,6 +229,9 @@ void insert_pcb_into_queue(queue_member* to_be_inserted, queue_member* insert_af
 
     }
 
+    // debug print
+    printf("  -> Insert successful\n");
+
 }
 
 
@@ -242,7 +245,7 @@ void receive_next_job() {
     // debug print
     printf("  -> Receiving PID %i from input queue...\n", input_queue_first->pcb->pid);
     if (new_queued_pcb == NULL) {
-        printf("ERROR: new_queued_pcb is NULL\n");
+        printf("ERROR: receive_next_job() new_queued_pcb is NULL\n");
         exit(1);
     }
     input_queue_first = input_queue_first->after;

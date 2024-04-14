@@ -210,6 +210,10 @@ void do_tick() {
     }
 
     // update current item
+    if (!current_process) {
+        printf("ERROR do_tick(): current_process is NULL\n");
+        return;
+    }
     current_process->running_time++;
     current_process->remaining_time--;
 
@@ -227,7 +231,7 @@ void do_output() {
             algo_s = "FCFS";
             break;
         case SRTF:
-            algo_s = "FCFS";
+            algo_s = "SRTF";
             break;
         case RR:
             algo_s = "RR  ";
@@ -268,6 +272,7 @@ void do_output() {
                                           this->turn_around_time,
                                           this->response_time,
                                           this->n_context);
+        this = this->after;
     }
     
     // print averages
