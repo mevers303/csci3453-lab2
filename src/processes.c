@@ -65,9 +65,11 @@ void switch_process() {
 
             queue_member* this = completed_queue_first;
             while (this != NULL) {
+
+                // loop to find smaller PID
                 if (current_process->pcb->pid < this->pcb->pid) {
                     // debug print
-                    printf("  -> Sorting completed queue and inserting...\n");
+                    printf("  -> Sorting completed_queue by PID and inserting...\n");
                     current_process->before = this->before;
                     current_process->after = this;
                     this->before = current_process;
@@ -81,12 +83,16 @@ void switch_process() {
                     }
                     break;
                 }
+
+                // progress to next in search
+                this = this->after;
+
             }
 
             // add to end of completed_queue
             if (this == NULL) {
                 // debug print
-                printf("  -> Adding to end of completed queue...\n");
+                printf("  -> Adding to end of completed_queue...\n");
                 completed_queue_last->after = current_process;
                 current_process->before = completed_queue_last;
                 current_process->after = NULL;
