@@ -179,7 +179,7 @@ void insert_pcb_into_queue(queue_member* to_be_inserted, queue_member* insert_af
     } else {
 
         // the queue is empty
-        if (queue_size) {
+        if (!queue_size) {
 
             // debug print
             printf("  -> No running process, starting PID %i...\n", to_be_inserted->pcb->pid);

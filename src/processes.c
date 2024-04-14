@@ -58,7 +58,7 @@ void switch_process() {
         // debug print
         printf("  -> Adding to list of completed processes.  Number of completed processes: %i\n", completed_queue_size);
 
-        // is it the first one?
+        // it is not the first one
         if (completed_queue_size) {
 
             queue_member* this = completed_queue_first;
@@ -195,7 +195,7 @@ void switch_process() {
 void do_tick() {
 
     // sanity check, empty queue
-    if (queue_size) {
+    if (!queue_size) {
         return;
     }
 
