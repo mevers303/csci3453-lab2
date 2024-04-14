@@ -354,8 +354,7 @@ void cleanup() {
     }
 
     // input queue (should be empty at end of main())
-    this = input_queue_first;
-    while (this != NULL) {
+    this = input_queue_first;    while (this != NULL) {
         queue_member* next = this->after;
         free(this->pcb);
         free(this);

@@ -117,10 +117,13 @@ void switch_process() {
         if (queue_size > 1) {
             current_process = next_queue_item;
             current_process->before = NULL;
-        }
-        if (queue_size > 0) {
             queue_size--;
-        } else {
+        // the last running process
+        } else if (queue_size == 1) {
+            current_process = NULL;
+            queue_size--;
+            return;
+        } else if (queue_size <= 0) {
             printf("  -> ERROR: decrease queue size when less than one.  Size: %i\n", queue_size);
         }
 
@@ -270,7 +273,7 @@ void do_output() {
     printf("********************************************************************************\n");
     printf("********************  Algorithm: %s                      *********************\n", algo_s);
     if (algo == RR) {
-        printf("********************  Tasks: %i Quantum: %f                *********************\n", completed_queue_size, quantum_size);
+        printf("********************  Tasks: %i Quantum: %.1f                *********************\n", completed_queue_size, quantum_size);
     }
     printf("********************************************************************************\n");
 
@@ -284,7 +287,7 @@ void do_output() {
     while (this != NULL) {
 
         // print this row
-        printf("%i,%i,%f,%f,%f,%f,%f,%i\n", this->pcb->pid,
+        printf("%i,%i,%.1f,%.1f,%.1f,%.1f,%.1f,%i\n", this->pcb->pid,
                                           this->pcb->arrival,
                                           this->running_time,
                                           this->completion_time,
