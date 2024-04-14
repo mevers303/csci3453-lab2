@@ -65,6 +65,7 @@ int main(int argc, char* argv[]) {
     // we're good, save algorithm enum
     algo = algo_i;
 
+
     // is a quantum provided?
     if (argc == 4) {
         quantum_size = atof(argv[3]);
@@ -76,24 +77,27 @@ int main(int argc, char* argv[]) {
         exit(1);
     }
 
+    // debug print
+    printf("Input file: %s\nAlgorithm = %i\nQuantum size: %.1f\n\n", input_file, algo, quantum_size);
+
 
     /////////////////////////////
     ///////   MAIN LOOP /////////
     /////////////////////////////
 
     // load the input queue
-    printf("  -> Reading input file...\n");
+    printf("Reading input file...\n");
     load_input_file(input_file);
     // initialize vars
     current_time = 0;
-    if (algo = RR) {
+    if (algo == RR) {
         last_quantum_start = 0;
     }
     queue_member* this_queue_item = current_process;
 
 
     // loop while we still have queue items
-    printf("  -> Starting main loop...\n");
+    printf("Starting main loop...\n");
     while (queue_size > 0 || input_queue_size > 0) {
 
         // debug output
@@ -110,6 +114,7 @@ int main(int argc, char* argv[]) {
             }
             // was something added to the front of the queue? do a context switch
             if (old_current_process != current_process && algo != RR) {
+                printf("switch_process #1\n");
                 switch_process();
             }
         }
@@ -117,6 +122,8 @@ int main(int argc, char* argv[]) {
 
         // second, check if context switch is needed for round robin
         if (algo == RR && current_time - last_quantum_start >= quantum_size) {
+            printf("\n%i\n\n", algo);
+            printf("switch_process #2\n");
             switch_process();
         }
         
@@ -128,6 +135,7 @@ int main(int argc, char* argv[]) {
         // fourth, check if process just completed running, since switch_process() needs to be called before the time is incremented
         if (current_process->remaining_time <= 0) {
             // context switch checks for finished process and handles it
+            printf("switch_process #3\n");
             switch_process();
         }
 

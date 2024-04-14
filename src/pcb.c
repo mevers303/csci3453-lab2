@@ -237,7 +237,8 @@ void receive_next_job() {
     // debug print
     printf("  -> Receiving PID %i from input queue...\n", input_queue_first->pcb->pid);
     if (new_queued_pcb == NULL) {
-        return;
+        printf("ERROR: new_queued_pcb is NULL\n");
+        exit(1);
     }
     input_queue_first = input_queue_first->after;
     input_queue_first->before = NULL;
@@ -275,7 +276,7 @@ void receive_next_job() {
             // we found a shorter remaining time, insert it into the linked list before current item
             if (new_queued_pcb->pcb->remaining < current_queue_item->pcb->remaining) {
                 // debug print
-                printf("  -> Inserting into ready queue after PID %i...\n", current_queue_item->before->pcb->pid);
+                printf("  -> SRTF: Inserting into ready queue after PID %i...\n", current_queue_item->before->pcb->pid);
                 insert_pcb_into_queue(new_queued_pcb, current_queue_item->before);
                 return;
             }
@@ -305,7 +306,7 @@ void receive_next_job() {
             // we found a lower priority, insert it before the current list item
             if (new_queued_pcb->pcb->priority < current_queue_item->pcb->priority) {
                 // debug print
-                printf("  -> Inserting into ready queue after PID %i...\n", current_queue_item->before->pcb->pid);
+                printf("  -> Round Robin: Inserting into ready queue after PID %i...\n", current_queue_item->before->pcb->pid);
                 insert_pcb_into_queue(new_queued_pcb, current_queue_item->before);
                 return;
             }
