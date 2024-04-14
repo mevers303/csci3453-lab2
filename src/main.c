@@ -52,14 +52,14 @@ int main(int argc, char* argv[]) {
  
     // read the arguments
     if (argc != 3 && argc != 4) {
-        printf("Improper arguments");
+        printf("Improper arguments\n");
     }
     const char* input_file = argv[1];
 
     // sanity check algorithm enum
     int algo_i = atoi(argv[2]);
     if (algo_i < 0 ||  algo_i > 2) {
-        printf("Algorithm selection must be between [0, 2] in the 2nd argument.");
+        printf("Algorithm selection must be between [0, 2] in the 2nd argument.\n");
         exit(1);
     }
     // we're good, save algorithm enum
@@ -72,7 +72,7 @@ int main(int argc, char* argv[]) {
 
     // sanity check for RR and quantum size
     if (algo == RR && quantum_size <= 0) {
-        printf("Since the algorithm is Round Robin (2), you must provide a proper quantum size in the 3rd argument greater than 0.");
+        printf("Since the algorithm is Round Robin (2), you must provide a proper quantum size in the 3rd argument greater than 0.\n");
         exit(1);
     }
 
@@ -97,7 +97,7 @@ int main(int argc, char* argv[]) {
     while (queue_size > 0 || input_queue_size > 0) {
 
         // debug output
-        printf("%.1f: queue_size=%i input_queue_size=%i\n", current_time, queue_size, input_queue_size);
+        printf("%.1f: queue_size=%i input_queue_size=%i\\n", current_time, queue_size, input_queue_size);
 
         // first, manage the queues
 
