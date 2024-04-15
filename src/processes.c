@@ -27,18 +27,23 @@
 
 
 // switches between processes, performs context switch if necessary
-// runs BEFORE current_time is incremented at end of each tick
 void switch_process() {
 
     // debug print
     printf("  -> switch_process() requested...\n");
+
+    // sanity check
+    if (!queue_size) {
+        printf("No more queue items to switch to.\n");
+        return;
+    }
 
     //////////////////////
     // end running item //
     //////////////////////
 
     // update metadata
-    current_process->last_burst_end = current_time + 1;
+    current_process->last_burst_end = current_time;
     current_process->running_time += current_process->last_burst_end - current_process->last_burst_start;
     // we need to save this for later
     queue_member* next_queue_item = current_process->after;
@@ -49,16 +54,16 @@ void switch_process() {
     if (running_item_finished) {
 
         // debug print
-        printf("  -> Finished PID: %i\n", current_process->pcb->pid);
+        printf("Finished PID: %i\n", current_process->pcb->pid);
 
         // save some stats
-        current_process->completion_time = current_time + 1;
+        current_process->completion_time = current_time;
         current_process->turn_around_time = current_process->completion_time - current_process->pcb->arrival;
         current_process->response_time = current_process->start_time - current_process->pcb->arrival;
 
         // add into completed queue in order of pid
         // debug print
-        printf("  -> Adding to list of completed processes...\n");
+        printf("  -> Adding PID %i to list of completed processes...\n", current_process->pcb->pid);
 
         // it is not the first one
         if (completed_queue_size) {
@@ -68,20 +73,27 @@ void switch_process() {
 
                 // loop to find smaller PID
                 if (current_process->pcb->pid < this->pcb->pid) {
+
                     // debug print
-                    printf("  -> Sorting completed_queue by PID and inserting...\n");
+                    printf("  -> Sorting completed_queue by inserting PID %i before PID %i...\n", current_process->pcb->pid, this->pcb->pid);
                     current_process->before = this->before;
                     current_process->after = this;
+                    // if (this->before) {
+                    //      this->before->after = current_process;
+                    // }
                     this->before = current_process;
+
+                    // did we change first or last?
                     // is it the first item?
                     if (current_process->before == NULL) {
                         completed_queue_first = current_process;
-                    }
+                    } 
                     // is it the last item?
-                    if (current_process->before == NULL) {
+                    if (current_process->after == NULL) {
                         completed_queue_last = current_process;
                     }
                     break;
+
                 }
 
                 // progress to next in search
@@ -92,7 +104,7 @@ void switch_process() {
             // add to end of completed_queue
             if (this == NULL) {
                 // debug print
-                printf("  -> Adding to end of completed_queue...\n");
+                printf("  -> Adding PID %i to end of completed_queue...\n", current_process->pcb->pid);
                 completed_queue_last->after = current_process;
                 current_process->before = completed_queue_last;
                 current_process->after = NULL;
@@ -104,6 +116,8 @@ void switch_process() {
         // it is the first one
         } else {
 
+            // debug print
+            printf("  -> Adding PID %i to completed_queue as the first in an empty queue...\n", current_process->pcb->pid);
             current_process->before = current_process->after = NULL;
             completed_queue_first = completed_queue_last = current_process;
             completed_queue_size = 1;
@@ -122,9 +136,8 @@ void switch_process() {
         } else if (queue_size == 1) {
             current_process = NULL;
             queue_size--;
-            return;
         } else if (queue_size <= 0) {
-            printf("  -> ERROR: decrease queue size when less than one.  Size: %i\n", queue_size);
+            printf("ERROR switch_process(): decrease queue size when less than one.  Size: %i\n", queue_size);
         }
 
     }
@@ -137,9 +150,10 @@ void switch_process() {
     // debug print
     printf("Switching...\n");
 
-    // round robin: is there still more than one item in the queue? move to the back of queue and switch to the next
-    if (!running_item_finished && queue_size > 1 && current_process->start_time >= 0) {
+    // we're switching because of a new arrival and ready queue has more than just the current process
+    if (!running_item_finished && queue_size > 1) {
 
+        // round robin: is there still more than one item in the queue? move to the back of queue and switch to the next
         if (algo == RR) {
             
             // debug print
@@ -166,8 +180,8 @@ void switch_process() {
             current_time += CONTEXT_SWITCH_COST;
         }
 
-    // one item left or zero items in queue? no context switch
-    } else if ((queue_size == 0 || queue_size == 1) && current_process->start_time >= 0) {
+    // we're switching because of a new arrival and ready queue has only the current process
+    } else if (!running_item_finished && queue_size == 1) {
 
         // debug print
         printf("  -> Process switch requested, but the ready queue is empty (%i)\n", queue_size);
@@ -176,6 +190,13 @@ void switch_process() {
         if (algo == RR) {
             last_quantum_start = current_time;
         }
+
+        // do nothing
+
+    // queue is empty and current process is finished.
+    } else if (queue_size == 0) {
+
+        printf("No more processes!\n");
         return;
 
     // less than zero items in queue?  problem
@@ -229,6 +250,9 @@ void do_tick() {
     if (!queue_size) {
         return;
     }
+
+    // debug print
+    printf("  -> burst\n");
 
     // update current item
     if (!current_process) {

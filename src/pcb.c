@@ -286,7 +286,11 @@ void receive_next_job() {
             // we found a shorter remaining time, insert it into the linked list before current item
             if (new_queued_pcb->pcb->remaining < current_queue_item->pcb->remaining) {
                 // debug print
-                printf("  -> SRTF: Inserting into ready queue after PID %i...\n", current_queue_item->before->pcb->pid);
+                if (current_queue_item->before) {
+                    printf("  -> SRTF: Inserting into ready queue after PID %i...\n", current_queue_item->before->pcb->pid);
+                } else {
+                    printf("  -> SRTF: Inserting into the beginning of the ready queue...\n");
+                }
                 insert_pcb_into_queue(new_queued_pcb, current_queue_item->before);
                 return;
             }
@@ -297,6 +301,7 @@ void receive_next_job() {
         }
     
         // if this line is executing that means we made it all the way the to the end of the queue without finding a shorter job time, insert it at the end
+        printf("  -> SRTF: Inserting at the end of the ready quue after PID %i...\n", queue_last->pcb->pid);
         insert_pcb_into_queue(new_queued_pcb, queue_last);
         return;
 
