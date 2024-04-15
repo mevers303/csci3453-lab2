@@ -101,18 +101,17 @@ int main(int argc, char* argv[]) {
     while (queue_size > 0 || input_queue_size > 0) {
 
         // debug output
-        printf("\n%.1f:  current_process=%i    queue_size=%i    input_queue_size=%i\n", current_time, current_process ? current_process->pcb->pid : 0, queue_size, input_queue_size);
-
-        
-        // first, check if process just completed running, since switch_process() needs to be called before the time is incremented
-        int current_item_completed = current_process && current_process->remaining_time <= 0;
-        queue_member* old_current_process = current_process;
+        printf("\n%.1f:\tcurrent_process=%i (time remaining: %.1f)    queue_size=%i    input_queue_size=%i\n", current_time,
+                                                                                                               current_process ? current_process->pcb->pid : 0,
+                                                                                                               current_process ? current_process->remaining_time : 0,
+                                                                                                               queue_size,
+                                                                                                               input_queue_size);
 
 
         // check if a new process has arrived
         if (input_queue_size > 0 && input_queue_first->pcb->arrival <= current_time) {
             if (!input_queue_first) {
-                printf("ERROR: main() input_queue_first is NULL");
+                printf("ERROR: main() input_queue_first is NULL\n");
             }
             // loop in case of multiple arrivals
             while (input_queue_first && input_queue_first->pcb->arrival <= current_time) {
@@ -121,22 +120,28 @@ int main(int argc, char* argv[]) {
         }
 
 
-        //  perform a context switch if the last item was finished or something was added to the front of the queue
-        if (current_item_completed || (old_current_process != current_process && algo != RR)) {
-            printf("switch_process() because of finished process or newly arrived process\n");
-            switch_process();
-        } else if (algo == RR && current_time - last_quantum_start >= quantum_size) {
+        //  round robin switch process for quantum size
+        if (algo == RR && current_time - last_quantum_start >= quantum_size) {
             printf("switch_process() because quantum time has ellapsed\n");
-            switch_process();
+            rr_switch_process();
+        }
+
+
+        // start current process if necessary (negative start time or last_burst_end is not -1)
+        if (current_process->start_time < 0 || current_process->last_burst_end > 0) {
+            start_current_process();
         }
         
 
         // perform a burst cycle
         do_tick();
-
-
-        // finally, increment the time for the next cycle
         current_time++;
+
+
+        // check if process just completed running, since switch_process() needs to be called before the time is incremented
+        if (current_process->remaining_time <= 0) {
+            end_current_process();
+        }
 
     }
 

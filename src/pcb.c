@@ -217,9 +217,20 @@ void insert_pcb_into_queue(queue_member* to_be_inserted, queue_member* insert_af
         // the queue is not empty, we need to swap it in the front
         } else {
 
-            // debug print
-            printf("  -> Detected running process, performing context switch to PID %i..\n", to_be_inserted->pcb->pid);
+            // context switch
+            if (current_process->start_time >= 0 && current_process->last_burst_end == -1) {
+                // debug print
+                printf("Context switch\n");
+                current_process->n_context++;
+                current_time += CONTEXT_SWITCH_COST;
+                // update metadata
+                current_process->last_burst_end = current_time;
+                current_process->running_time += current_process->last_burst_end - current_process->last_burst_start;
+            }
 
+            // add to front of queue
+            // debug print
+            printf("  -> Adding PID %i as the current_process to switch to...\n", to_be_inserted->pcb->pid);
             current_process->before = to_be_inserted;
             to_be_inserted->after = current_process;
             current_process = to_be_inserted;

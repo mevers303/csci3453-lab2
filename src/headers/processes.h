@@ -16,9 +16,12 @@
 
 // performs one processor burst
 void do_tick();
-// switches between processes, performs context switch if necessary
-// runs BEFORE current_time is incremented at end of each tick
-void switch_process();
+// starts the current_process
+void start_current_process();
+// finalizes the current process and switches to the next
+void end_current_process();
+// round robin switcher
+void rr_switch_process();
 // perform the output
 void do_output();
 
