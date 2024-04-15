@@ -30,7 +30,7 @@
 void end_current_process() {
 
     // debug print
-    printf("Finished process PID %i\n", current_process->pcb->pid);
+    printf("Finished PID %i\n", current_process->pcb->pid);
 
     //////////////////////
     // end running item //
@@ -221,7 +221,7 @@ void start_current_process() {
     } else {
 
         // debug print
-        printf("  -> Starting PID %i.  Time remaining: %.1f\n", current_process->pcb->pid, current_process->remaining_time);
+        printf("Restarting PID %i.  Time remaining: %.1f\n", current_process->pcb->pid, current_process->remaining_time);
 
         // initialize burst variables
         current_process->waiting_time += current_time - current_process->last_burst_end;
