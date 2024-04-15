@@ -78,9 +78,9 @@ void switch_process() {
                     printf("  -> Sorting completed_queue by inserting PID %i before PID %i...\n", current_process->pcb->pid, this->pcb->pid);
                     current_process->before = this->before;
                     current_process->after = this;
-                    // if (this->before) {
-                    //      this->before->after = current_process;
-                    // }
+                    if (this->before) {
+                         this->before->after = current_process;
+                    }
                     this->before = current_process;
 
                     // did we change first or last?
@@ -97,6 +97,10 @@ void switch_process() {
                 }
 
                 // progress to next in search
+                if (this == this->after) {
+                    printf("ERROR switch_process(): Loop in completed_queue\n");
+                     break;
+                }
                 this = this->after;
 
             }
@@ -118,8 +122,8 @@ void switch_process() {
 
             // debug print
             printf("  -> Adding PID %i to completed_queue as the first in an empty queue...\n", current_process->pcb->pid);
-            current_process->before = current_process->after = NULL;
             completed_queue_first = completed_queue_last = current_process;
+            current_process->before = current_process->after = NULL;
             completed_queue_size = 1;
 
         }
@@ -327,6 +331,10 @@ void do_output() {
         total_response_time += this->response_time;
 
         // progress to next item
+        if (this == this->after) {
+            printf("ERROR switch_process(): Loop in completed_queue\n");
+                break;
+        }
         this = this->after;
 
     }

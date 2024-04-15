@@ -101,7 +101,7 @@ int main(int argc, char* argv[]) {
     while (queue_size > 0 || input_queue_size > 0) {
 
         // debug output
-        printf("\n%.1f: queue_size=%i input_queue_size=%i\n", current_time, queue_size, input_queue_size);
+        printf("\n%.1f:  current_process=%i    queue_size=%i    input_queue_size=%i\n", current_time, current_process ? current_process->pcb->pid : 0, queue_size, input_queue_size);
 
         
         // first, check if process just completed running, since switch_process() needs to be called before the time is incremented
