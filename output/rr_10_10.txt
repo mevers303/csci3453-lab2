@@ -1,0 +1,16 @@
+Input file: data/input10
+Algorithm = 2
+Quantum size: 10.0
+
+Reading input file...
+Starting main loop...
+
+0.0:    current_process=0 (time remaining: 0.0)    queue_size=0    input_queue_size=10
+  -> Receiving PID 1 from input queue...
+  -> No running process detected, inserting PID 1 as current process
+Starting PID 1 for the first time.  Time remaining: 10
+  -> burst
+
+1.0:    current_process=1 (time remaining: 9.0)    queue_size=1    input_queue_size=9
+  -> Receiving PID 2 from input queue...
+Segmentation fault (core dumped)

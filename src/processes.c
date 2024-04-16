@@ -316,7 +316,7 @@ void do_output() {
         total_wait_time += this->waiting_time;
         total_turn_around_time += this->turn_around_time;
         total_response_time += this->response_time;
-        total_n_context++;
+        total_n_context += this->n_context;
 
         // progress to next item
         if (this == this->after) {
@@ -332,6 +332,6 @@ void do_output() {
     printf("Average wait_time: %.1f\n", total_wait_time / completed_queue_size);
     printf("Average turn_around: %.1f\n", total_turn_around_time / completed_queue_size);
     printf("Average total_response_time: %.1f\n", total_response_time / completed_queue_size);
-    printf("Total n_context: %i\n", total_n_context);
+    printf("Total context switches: %i\n", total_n_context);
 
 }

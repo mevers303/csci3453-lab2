@@ -1,0 +1,31 @@
+Input file: data/input100
+Algorithm = 1
+Quantum size: -1.0
+
+Reading input file...
+Starting main loop...
+
+0.0:    current_process=0 (time remaining: 0.0)    queue_size=0    input_queue_size=100
+  -> Receiving PID 1 from input queue...
+  -> No running process detected, inserting PID 1 as current process
+Starting PID 1 for the first time.  Time remaining: 3
+  -> burst
+
+1.0:    current_process=1 (time remaining: 2.0)    queue_size=1    input_queue_size=99
+  -> Receiving PID 2 from input queue...
+  -> SRTF: Inserting PID 2 into the beginning of the ready queue (sort by time remaining)...
+  -> Inserting into queue...
+Context switch
+  -> Adding PID 2 as the current_process to switch to...
+  -> Insert successful
+Starting PID 2 for the first time.  Time remaining: 30
+  -> burst
+
+2.5:    current_process=2 (time remaining: 29.0)    queue_size=2    input_queue_size=98
+  -> burst
+
+3.5:    current_process=2 (time remaining: 28.0)    queue_size=2    input_queue_size=98
+  -> Receiving PID 3 from input queue...
+^C
+
+# manually quit because of infinite loop: output frozen

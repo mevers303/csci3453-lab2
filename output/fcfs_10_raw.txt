@@ -1,0 +1,277 @@
+Input file: data/input10
+Algorithm = 0
+Quantum size: -1.0
+
+Reading input file...
+Starting main loop...
+
+0.0:	current_process=0 (time remaining: 0.0)    queue_size=0    input_queue_size=10
+  -> Receiving PID 1 from input queue...
+  -> No running process detected, inserting PID 1 as current process
+Starting PID 1 for the first time.  Time remaining: 10
+  -> burst
+
+1.0:	current_process=1 (time remaining: 9.0)    queue_size=1    input_queue_size=9
+  -> Receiving PID 2 from input queue...
+  -> Inserting PID 2 at end of queue (FCFS)...
+  -> Inserting into queue...
+  -> Inserting PID 2 into ready queue after PID 1...
+  -> Insert successful
+  -> burst
+
+2.0:	current_process=1 (time remaining: 8.0)    queue_size=2    input_queue_size=8
+  -> Receiving PID 3 from input queue...
+  -> Inserting PID 3 at end of queue (FCFS)...
+  -> Inserting into queue...
+  -> Inserting PID 3 into ready queue after PID 2...
+  -> Insert successful
+  -> burst
+
+3.0:	current_process=1 (time remaining: 7.0)    queue_size=3    input_queue_size=7
+  -> burst
+
+4.0:	current_process=1 (time remaining: 6.0)    queue_size=3    input_queue_size=7
+  -> Receiving PID 4 from input queue...
+  -> Inserting PID 4 at end of queue (FCFS)...
+  -> Inserting into queue...
+  -> Inserting PID 4 into ready queue after PID 3...
+  -> Insert successful
+  -> burst
+
+5.0:	current_process=1 (time remaining: 5.0)    queue_size=4    input_queue_size=6
+  -> Receiving PID 5 from input queue...
+  -> Inserting PID 5 at end of queue (FCFS)...
+  -> Inserting into queue...
+  -> Inserting PID 5 into ready queue after PID 4...
+  -> Insert successful
+  -> burst
+
+6.0:	current_process=1 (time remaining: 4.0)    queue_size=5    input_queue_size=5
+  -> Receiving PID 6 from input queue...
+  -> Inserting PID 6 at end of queue (FCFS)...
+  -> Inserting into queue...
+  -> Inserting PID 6 into ready queue after PID 5...
+  -> Insert successful
+  -> burst
+
+7.0:	current_process=1 (time remaining: 3.0)    queue_size=6    input_queue_size=4
+  -> burst
+
+8.0:	current_process=1 (time remaining: 2.0)    queue_size=6    input_queue_size=4
+  -> burst
+
+9.0:	current_process=1 (time remaining: 1.0)    queue_size=6    input_queue_size=4
+  -> Receiving PID 7 from input queue...
+  -> Inserting PID 7 at end of queue (FCFS)...
+  -> Inserting into queue...
+  -> Inserting PID 7 into ready queue after PID 6...
+  -> Insert successful
+  -> burst
+Finished PID 1
+  -> Adding PID 1 to completed_queue as the first in an empty queue...
+  -> Number of completed processes: 1
+
+10.0:	current_process=2 (time remaining: -1.0)    queue_size=6    input_queue_size=3
+  -> Receiving PID 8 from input queue...
+  -> Inserting PID 8 at end of queue (FCFS)...
+  -> Inserting into queue...
+  -> Inserting PID 8 into ready queue after PID 7...
+  -> Insert successful
+Starting PID 2 for the first time.  Time remaining: 3
+  -> burst
+
+11.0:	current_process=2 (time remaining: 2.0)    queue_size=7    input_queue_size=2
+  -> burst
+
+12.0:	current_process=2 (time remaining: 1.0)    queue_size=7    input_queue_size=2
+  -> burst
+Finished PID 2
+  -> Adding PID 2 to end of completed_queue...
+  -> Number of completed processes: 2
+
+13.0:	current_process=3 (time remaining: -1.0)    queue_size=6    input_queue_size=2
+  -> Receiving PID 9 from input queue...
+  -> Inserting PID 9 at end of queue (FCFS)...
+  -> Inserting into queue...
+  -> Inserting PID 9 into ready queue after PID 8...
+  -> Insert successful
+Starting PID 3 for the first time.  Time remaining: 8
+  -> burst
+
+14.0:	current_process=3 (time remaining: 7.0)    queue_size=7    input_queue_size=1
+  -> burst
+
+15.0:	current_process=3 (time remaining: 6.0)    queue_size=7    input_queue_size=1
+  -> Receiving PID 10 from input queue...
+  -> Inserting PID 10 at end of queue (FCFS)...
+  -> Inserting into queue...
+  -> Inserting PID 10 into ready queue after PID 9...
+  -> Insert successful
+  -> burst
+
+16.0:	current_process=3 (time remaining: 5.0)    queue_size=8    input_queue_size=0
+  -> burst
+
+17.0:	current_process=3 (time remaining: 4.0)    queue_size=8    input_queue_size=0
+  -> burst
+
+18.0:	current_process=3 (time remaining: 3.0)    queue_size=8    input_queue_size=0
+  -> burst
+
+19.0:	current_process=3 (time remaining: 2.0)    queue_size=8    input_queue_size=0
+  -> burst
+
+20.0:	current_process=3 (time remaining: 1.0)    queue_size=8    input_queue_size=0
+  -> burst
+Finished PID 3
+  -> Adding PID 3 to end of completed_queue...
+  -> Number of completed processes: 3
+
+21.0:	current_process=4 (time remaining: -1.0)    queue_size=7    input_queue_size=0
+Starting PID 4 for the first time.  Time remaining: 4
+  -> burst
+
+22.0:	current_process=4 (time remaining: 3.0)    queue_size=7    input_queue_size=0
+  -> burst
+
+23.0:	current_process=4 (time remaining: 2.0)    queue_size=7    input_queue_size=0
+  -> burst
+
+24.0:	current_process=4 (time remaining: 1.0)    queue_size=7    input_queue_size=0
+  -> burst
+Finished PID 4
+  -> Adding PID 4 to end of completed_queue...
+  -> Number of completed processes: 4
+
+25.0:	current_process=5 (time remaining: -1.0)    queue_size=6    input_queue_size=0
+Starting PID 5 for the first time.  Time remaining: 5
+  -> burst
+
+26.0:	current_process=5 (time remaining: 4.0)    queue_size=6    input_queue_size=0
+  -> burst
+
+27.0:	current_process=5 (time remaining: 3.0)    queue_size=6    input_queue_size=0
+  -> burst
+
+28.0:	current_process=5 (time remaining: 2.0)    queue_size=6    input_queue_size=0
+  -> burst
+
+29.0:	current_process=5 (time remaining: 1.0)    queue_size=6    input_queue_size=0
+  -> burst
+Finished PID 5
+  -> Adding PID 5 to end of completed_queue...
+  -> Number of completed processes: 5
+
+30.0:	current_process=6 (time remaining: -1.0)    queue_size=5    input_queue_size=0
+Starting PID 6 for the first time.  Time remaining: 7
+  -> burst
+
+31.0:	current_process=6 (time remaining: 6.0)    queue_size=5    input_queue_size=0
+  -> burst
+
+32.0:	current_process=6 (time remaining: 5.0)    queue_size=5    input_queue_size=0
+  -> burst
+
+33.0:	current_process=6 (time remaining: 4.0)    queue_size=5    input_queue_size=0
+  -> burst
+
+34.0:	current_process=6 (time remaining: 3.0)    queue_size=5    input_queue_size=0
+  -> burst
+
+35.0:	current_process=6 (time remaining: 2.0)    queue_size=5    input_queue_size=0
+  -> burst
+
+36.0:	current_process=6 (time remaining: 1.0)    queue_size=5    input_queue_size=0
+  -> burst
+Finished PID 6
+  -> Adding PID 6 to end of completed_queue...
+  -> Number of completed processes: 6
+
+37.0:	current_process=7 (time remaining: -1.0)    queue_size=4    input_queue_size=0
+Starting PID 7 for the first time.  Time remaining: 2
+  -> burst
+
+38.0:	current_process=7 (time remaining: 1.0)    queue_size=4    input_queue_size=0
+  -> burst
+Finished PID 7
+  -> Adding PID 7 to end of completed_queue...
+  -> Number of completed processes: 7
+
+39.0:	current_process=8 (time remaining: -1.0)    queue_size=3    input_queue_size=0
+Starting PID 8 for the first time.  Time remaining: 6
+  -> burst
+
+40.0:	current_process=8 (time remaining: 5.0)    queue_size=3    input_queue_size=0
+  -> burst
+
+41.0:	current_process=8 (time remaining: 4.0)    queue_size=3    input_queue_size=0
+  -> burst
+
+42.0:	current_process=8 (time remaining: 3.0)    queue_size=3    input_queue_size=0
+  -> burst
+
+43.0:	current_process=8 (time remaining: 2.0)    queue_size=3    input_queue_size=0
+  -> burst
+
+44.0:	current_process=8 (time remaining: 1.0)    queue_size=3    input_queue_size=0
+  -> burst
+Finished PID 8
+  -> Adding PID 8 to end of completed_queue...
+  -> Number of completed processes: 8
+
+45.0:	current_process=9 (time remaining: -1.0)    queue_size=2    input_queue_size=0
+Starting PID 9 for the first time.  Time remaining: 1
+  -> burst
+Finished PID 9
+  -> Adding PID 9 to end of completed_queue...
+  -> Number of completed processes: 9
+
+46.0:	current_process=10 (time remaining: -1.0)    queue_size=1    input_queue_size=0
+Starting PID 10 for the first time.  Time remaining: 9
+  -> burst
+
+47.0:	current_process=10 (time remaining: 8.0)    queue_size=1    input_queue_size=0
+  -> burst
+
+48.0:	current_process=10 (time remaining: 7.0)    queue_size=1    input_queue_size=0
+  -> burst
+
+49.0:	current_process=10 (time remaining: 6.0)    queue_size=1    input_queue_size=0
+  -> burst
+
+50.0:	current_process=10 (time remaining: 5.0)    queue_size=1    input_queue_size=0
+  -> burst
+
+51.0:	current_process=10 (time remaining: 4.0)    queue_size=1    input_queue_size=0
+  -> burst
+
+52.0:	current_process=10 (time remaining: 3.0)    queue_size=1    input_queue_size=0
+  -> burst
+
+53.0:	current_process=10 (time remaining: 2.0)    queue_size=1    input_queue_size=0
+  -> burst
+
+54.0:	current_process=10 (time remaining: 1.0)    queue_size=1    input_queue_size=0
+  -> burst
+Finished PID 10
+  -> Adding PID 10 to end of completed_queue...
+  -> Number of completed processes: 10
+********************************************************************************
+********************  Algorithm: FCFS                      *********************
+********************************************************************************
+pid,arrival,run_time,finish,wait_time,turn_around_time,response_time,n_context
+1,0,20.0,10.0,0.0,10.0,0.0,0
+2,1,6.0,13.0,9.0,12.0,9.0,0
+3,2,16.0,21.0,11.0,19.0,11.0,0
+4,4,8.0,25.0,17.0,21.0,17.0,0
+5,5,10.0,30.0,20.0,25.0,20.0,0
+6,6,14.0,37.0,24.0,31.0,24.0,0
+7,9,4.0,39.0,28.0,30.0,28.0,0
+8,10,12.0,45.0,29.0,35.0,29.0,0
+9,13,2.0,46.0,32.0,33.0,32.0,0
+10,15,18.0,55.0,31.0,40.0,31.0,0
+Average run_time: 11.0
+Average wait_time: 20.1
+Average turn_around: 25.6
+Average total_response_time: 20.1
+Total context switches: 0
